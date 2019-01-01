@@ -35,3 +35,4 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+Aseprite2Unity/Logs/Packages-Update.log
