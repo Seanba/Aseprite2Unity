@@ -37,3 +37,4 @@ sysinfo.txt
 *.unitypackage
 Aseprite2Unity/Logs/Packages-Update.log
 deploy/output.log
+docs/_build
