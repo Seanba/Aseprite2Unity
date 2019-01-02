@@ -13,9 +13,7 @@ Aseprite2Unity requires Unity 2018.3 or later.
 
 ## Author
 
-* **Sean Barton** - *Initial work* - [Seanba](https://github.com/Seanba)
-[https://seanba.com](https://seanba.com)
-
+Hi, I'm **Sean Barton**, a professional game developer working in Austin, Texas. You can learn more about me [on my website](https://seanba.com).
 
 ## License
 
