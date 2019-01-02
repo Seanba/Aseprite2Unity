@@ -6,6 +6,8 @@ Aseprite2Unity is a collection of Unity C# scripts that import `*.ase, *.aseprit
 
 Simply install the Aseprite2Unity Unity Package into your Unity projects. Any Aseprite files you have in your project will be automatically imported into prefabs containing the sprite frames and animations.
 
+You can find the latest packaged version of Aseprite2Unity Unity Package at [itch.io](https://seanba.itch.io/aseprite2unity).
+
 ### Prerequisites
 
 Aseprite2Unity requires Unity 2018.3 or later.
