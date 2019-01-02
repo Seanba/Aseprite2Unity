@@ -28,4 +28,8 @@ Additional `donations can be made <http://www.seanba.com/donate>`_ and **are alw
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: User Manual:
+
+   manual/importer-options
+   manual/sprite-pivots
+   manual/sprite-animations

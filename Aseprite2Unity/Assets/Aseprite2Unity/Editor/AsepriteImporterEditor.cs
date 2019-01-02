@@ -74,8 +74,10 @@ namespace Aseprite2Unity.Editor
                 EditorGUI.indentLevel--;
             }
 
+            ApplyRevertGUI();
 
-            base.ApplyRevertGUI();
+            EditorGUILayout.HelpBox("Tip: You can change sprite pivot by adding a pivot slice named unity:pivot to your first frame in Aseprite.", MessageType.Info);
+            EditorGUILayout.HelpBox("Tip: Animations in Aseprite loop by default. Surround Frame Tag names with square brackets to disable looping. For example, [MyAnimName].", MessageType.Info);
         }
 
         static void DisplayEnumProperty(SerializedProperty prop, string[] displayNames, GUIContent guicontent)
