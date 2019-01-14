@@ -9,10 +9,10 @@ using UnityEngine.U2D;
 
 namespace Aseprite2Unity.Editor
 {
-    [ScriptedImporter(2, new string[] { "aseprite", "ase" })]
+    [ScriptedImporter(3, new string[] { "aseprite", "ase" })]
     public class AsepriteImporter : ScriptedImporter, IAseVisitor
     {
-        public const string Version = "1.0.2";
+        public const string Version = "1.0.3";
 
         private readonly static Color m_TransparentColor = new Color32(0, 0, 0, 0);
 
@@ -222,13 +222,14 @@ namespace Aseprite2Unity.Editor
             {
                 // Assumes the first slice entry under pivot is the pivot for our sprite
                 // The center of the slice is our pivot point. This allows for half-pixel pivots.
-                float pw = slice.Entries[0].Width;
-                float ph = slice.Entries[0].Height;
+                var entry = slice.Entries[0];
+                float pw = entry.Width;
+                float ph = entry.Height;
 
-                float px = slice.Entries[0].OriginX + pw * 0.5f;
-                float py = FlipY(slice.Entries[0].OriginY + 1) + ph * 0.5f;
+                float px = entry.OriginX + pw * 0.5f;
+                float py = entry.OriginY + ph * 0.5f;
 
-                m_Pivot = new Vector2(px / m_Texture2D.width, py / m_Texture2D.height);
+                m_Pivot = new Vector2(px / m_Texture2D.width, 1.0f - py / m_Texture2D.height);
             }
         }
 
