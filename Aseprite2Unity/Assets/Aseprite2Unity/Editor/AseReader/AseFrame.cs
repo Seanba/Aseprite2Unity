@@ -11,15 +11,12 @@ namespace Aseprite2Unity.Editor
     {
         public AseFile AseFile { get; private set; }
 
-        public uint NumBytesInFrame { get; private set; }
-        public ushort MagicNumber { get; private set; }
-        public ushort NumChunksOld { get; private set; }
-        public ushort FrameDurationMs { get; private set; }
-        public uint NumChunksNew { get; private set; }
+        public uint NumBytesInFrame { get; }
+        public ushort MagicNumber { get; }
+        public uint NumChunks { get; }
+        public ushort FrameDurationMs { get; }
 
-        public int NumChunksTotal {  get { return (int)(NumChunksOld + NumChunksNew); } }
-
-        public List<AseChunk> Chunks { get; private set; }
+        public List<AseChunk> Chunks { get; }
 
         public AseFrame(AseFile file, AseReader reader)
         {
@@ -27,17 +24,22 @@ namespace Aseprite2Unity.Editor
 
             NumBytesInFrame = reader.ReadDWORD();
             MagicNumber = reader.ReadWORD();
-            NumChunksOld = reader.ReadWORD();
+            NumChunks = reader.ReadWORD();
             FrameDurationMs = reader.ReadWORD();
 
             // Ingore next two bytes
             reader.ReadBYTEs(2);
 
-            NumChunksNew = reader.ReadDWORD();
+            // Later versions of Aseprite may overwrite our number of chunks
+            var nchunks = reader.ReadDWORD();
+            if (NumChunks == 0xFFFF && NumChunks < nchunks)
+            {
+                NumChunks = nchunks;
+            }
 
             // Read in old and new chunks
-            Chunks = Enumerable.Repeat<AseChunk>(null, NumChunksTotal).ToList();
-            for (int i = 0; i < NumChunksTotal; i++)
+            Chunks = Enumerable.Repeat<AseChunk>(null, (int)NumChunks).ToList();
+            for (int i = 0; i < NumChunks; i++)
             {
                 Chunks[i] = ReadChunk(reader);
             }

@@ -38,3 +38,7 @@ sysinfo.txt
 Aseprite2Unity/Logs/Packages-Update.log
 deploy/output.log
 docs/_build
+
+# Test data
+Aseprite2Unity/Assets/TestData/
+Aseprite2Unity/Assets/TestData.meta

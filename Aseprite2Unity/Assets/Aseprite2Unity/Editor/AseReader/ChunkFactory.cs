@@ -30,6 +30,10 @@ namespace Aseprite2Unity.Editor
                     chunk = new AseCelChunk(frame, reader, size);
                     break;
 
+                case ChunkType.ColorProfile:
+                    chunk = new AseColorProfileChunk(frame, reader);
+                    break;
+
                 case ChunkType.FrameTags:
                     chunk = new AseFrameTagsChunk(frame, reader);
                     break;
