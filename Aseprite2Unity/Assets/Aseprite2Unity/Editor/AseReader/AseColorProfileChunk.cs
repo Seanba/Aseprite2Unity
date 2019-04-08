@@ -23,7 +23,8 @@ namespace Aseprite2Unity.Editor
             // Next 8 bytes are reserved
             reader.ReadBYTEs(8);
 
-            // fixit - what to do with color profile data?
+            // Do we need to do anything with color profile data?
+            // For now, just keep on truckin'
             if (ColorProfileType == ColorProfileType.EmbeddedICC)
             {
                 var length = (int)reader.ReadDWORD();
@@ -33,7 +34,6 @@ namespace Aseprite2Unity.Editor
 
         public override void Visit(IAseVisitor visitor)
         {
-            // fixit - nothing for now
         }
     }
 }

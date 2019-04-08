@@ -115,7 +115,7 @@ namespace Aseprite2Unity.Editor
             m_Texture2D = new Texture2D(width, height, TextureFormat.RGBA32, false);
             m_Texture2D.wrapMode = TextureWrapMode.Clamp;
             m_Texture2D.filterMode = FilterMode.Point;
-            m_Texture2D.name = string.Format("tex2d_{0}", m_Frames.Count);
+            m_Texture2D.name = string.Format("{0}_tex2d_{1}", Path.GetFileNameWithoutExtension(assetPath), m_Frames.Count);
 
             // Texture starts off blank
             m_Texture2D.SetPixels(0, 0, width, height, m_ClearPixels);
@@ -135,7 +135,7 @@ namespace Aseprite2Unity.Editor
             // Make a sprite out of the texture
             var pivot = m_Pivot ?? new Vector2(0.5f, 0.5f);
             var sprite = Sprite.Create(m_Texture2D, new Rect(0, 0, m_Texture2D.width, m_Texture2D.height), pivot, m_PixelsPerUnit);
-            sprite.name = string.Format("sprite_{0}", m_Sprites.Count);
+            sprite.name = string.Format("{0}_sprite_{1}", Path.GetFileNameWithoutExtension(assetPath), m_Sprites.Count);
             m_Sprites.Add(sprite);
             m_Context.AddObjectToAsset(sprite.name, sprite);
         }
