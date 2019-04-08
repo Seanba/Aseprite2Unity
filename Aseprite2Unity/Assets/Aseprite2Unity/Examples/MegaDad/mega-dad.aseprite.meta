@@ -4,14 +4,14 @@ ScriptedImporter:
   fileIDToRecycleName:
     100000: _main/mega-dad
     400000: _main/mega-dad/Transform
-    2800000: tex2d_0
-    2800002: tex2d_1
-    2800004: tex2d_2
-    2800006: tex2d_3
-    2800008: tex2d_4
-    2800010: tex2d_5
-    2800012: tex2d_6
-    2800014: tex2d_7
+    2800016: mega-dad_tex2d_0
+    2800018: mega-dad_tex2d_1
+    2800020: mega-dad_tex2d_2
+    2800022: mega-dad_tex2d_3
+    2800024: mega-dad_tex2d_4
+    2800026: mega-dad_tex2d_5
+    2800028: mega-dad_tex2d_6
+    2800030: mega-dad_tex2d_7
     7400000: anim_Idle
     7400002: anim_Run
     7400006: anim_Jump
@@ -20,14 +20,14 @@ ScriptedImporter:
     7400014: anim_Climb2
     9500000: _main/mega-dad/Animator
     21200000: _main/mega-dad/SpriteRenderer
-    21300000: sprite_0
-    21300002: sprite_1
-    21300004: sprite_2
-    21300006: sprite_3
-    21300008: sprite_4
-    21300010: sprite_5
-    21300012: sprite_6
-    21300014: sprite_7
+    21300016: mega-dad_sprite_0
+    21300018: mega-dad_sprite_1
+    21300020: mega-dad_sprite_2
+    21300022: mega-dad_sprite_3
+    21300024: mega-dad_sprite_4
+    21300026: mega-dad_sprite_5
+    21300028: mega-dad_sprite_6
+    21300030: mega-dad_sprite_7
     100100000: _main
   externalObjects: {}
   userData: 
@@ -41,3 +41,4 @@ ScriptedImporter:
   sortingOrder: 0
   animatorCullingMode: 2
   animatorController: {fileID: 9100000, guid: 1264cfddb4233f04985194d16a0ec958, type: 2}
+  errors: []
