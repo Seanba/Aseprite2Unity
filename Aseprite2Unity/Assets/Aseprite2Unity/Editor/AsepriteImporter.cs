@@ -12,7 +12,7 @@ namespace Aseprite2Unity.Editor
     [ScriptedImporter(4, new string[] { "aseprite", "ase" })]
     public class AsepriteImporter : ScriptedImporter, IAseVisitor
     {
-        public const string Version = "1.1.0";
+        public const string Version = "1.1.1";
 
         private readonly static Color m_TransparentColor = new Color32(0, 0, 0, 0);
 
