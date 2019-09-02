@@ -50,7 +50,7 @@ namespace Aseprite2Unity.Editor
         {
             m_Errors.Clear();
 
-#if UNITY_2018_1_OR_NEWER
+#if UNITY_2018_3_OR_NEWER
             m_Context = ctx;
 
             using (var reader = new AseReader(ctx.assetPath))
@@ -67,6 +67,8 @@ namespace Aseprite2Unity.Editor
 
         public void BeginFileVisit(AseFile file)
         {
+            SpriteAtlasUserAsset.RemoveSpritesFromAtlas(assetPath);
+
             m_AseFile = file;
             m_Pivot = null;
 
@@ -85,6 +87,10 @@ namespace Aseprite2Unity.Editor
 
         public void EndFileVisit(AseFile file)
         {
+            // Add sprites to sprite atlas (or more correctly, add the scritable object that will add the sprites when import completes)
+            var spriteAtlasUser = SpriteAtlasUserAsset.CreateSpriteAtlasUserAsset(m_SpriteAtlas);
+            m_Context.AddObjectToAsset("__atlas", spriteAtlasUser);
+
             BuildAnimations();
 
             var renderer = m_GameObject.AddComponent<SpriteRenderer>();

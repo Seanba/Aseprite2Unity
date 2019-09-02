@@ -22,6 +22,9 @@ namespace Aseprite2Unity.Editor
 
         public override void OnInspectorGUI()
         {
+#if UNITY_2019_2_OR_NEWER
+            serializedObject.Update();
+#endif
             var importer = serializedObject.targetObject as AsepriteImporter;
 
             if (importer.Errors.Any())
@@ -74,6 +77,9 @@ namespace Aseprite2Unity.Editor
                 EditorGUI.indentLevel--;
             }
 
+#if UNITY_2019_2_OR_NEWER
+            serializedObject.ApplyModifiedProperties();
+#endif
             ApplyRevertGUI();
 
             EditorGUILayout.HelpBox("Tip: You can change sprite pivot by adding a pivot slice named unity:pivot to your first frame in Aseprite.", MessageType.Info);

@@ -19,6 +19,7 @@ ScriptedImporter:
     7400012: anim_Climb1
     7400014: anim_Climb2
     9500000: _main/mega-dad/Animator
+    11400000: __atlas
     21200000: _main/mega-dad/SpriteRenderer
     21300016: mega-dad_sprite_0
     21300018: mega-dad_sprite_1
