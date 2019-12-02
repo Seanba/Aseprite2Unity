@@ -12,7 +12,7 @@ namespace Aseprite2Unity.Editor
     [ScriptedImporter(4, new string[] { "aseprite", "ase" })]
     public class AsepriteImporter : ScriptedImporter, IAseVisitor
     {
-        public const string Version = "1.1.1";
+        public const string Version = "1.1.2";
 
         private readonly static Color m_TransparentColor = new Color32(0, 0, 0, 0);
 
@@ -121,7 +121,7 @@ namespace Aseprite2Unity.Editor
             m_Texture2D = new Texture2D(width, height, TextureFormat.RGBA32, false);
             m_Texture2D.wrapMode = TextureWrapMode.Clamp;
             m_Texture2D.filterMode = FilterMode.Point;
-            m_Texture2D.name = string.Format("{0}_tex2d_{1}", Path.GetFileNameWithoutExtension(assetPath), m_Frames.Count);
+            m_Texture2D.name = string.Format("{0}.Textures._{1}", Path.GetFileNameWithoutExtension(assetPath), m_Frames.Count);
 
             // Texture starts off blank
             m_Texture2D.SetPixels(0, 0, width, height, m_ClearPixels);
@@ -141,7 +141,7 @@ namespace Aseprite2Unity.Editor
             // Make a sprite out of the texture
             var pivot = m_Pivot ?? new Vector2(0.5f, 0.5f);
             var sprite = Sprite.Create(m_Texture2D, new Rect(0, 0, m_Texture2D.width, m_Texture2D.height), pivot, m_PixelsPerUnit);
-            sprite.name = string.Format("{0}_sprite_{1}", Path.GetFileNameWithoutExtension(assetPath), m_Sprites.Count);
+            sprite.name = string.Format("{0}.Sprites._{1}", Path.GetFileNameWithoutExtension(assetPath), m_Sprites.Count);
             m_Sprites.Add(sprite);
             m_Context.AddObjectToAsset(sprite.name, sprite);
         }
@@ -385,7 +385,8 @@ namespace Aseprite2Unity.Editor
                 foreach (var entry in m_AseFrameTagsChunk.Entries)
                 {
                     var animIndices = Enumerable.Range(entry.FromFrame, entry.ToFrame - entry.FromFrame + 1).ToList();
-                    MakeAnimationClip("anim_" + entry.Name, !entry.IsOneShot, animIndices);
+                    string animName = string.Format("{0}.Animations.{1}", Path.GetFileNameWithoutExtension(assetPath), entry.Name);
+                    MakeAnimationClip(animName, !entry.IsOneShot, animIndices);
 
                     // Remove the indices from the pool of animation frames
                     frameIndices.RemoveAll(i => i >= animIndices.First() && i <= animIndices.Last());
@@ -393,7 +394,8 @@ namespace Aseprite2Unity.Editor
             }
 
             // Make an animation out of any left over (untagged) frames
-            MakeAnimationClip("anim_Untagged", true, frameIndices);
+            string untaggedName = string.Format("{0}.Animations.Untagged", Path.GetFileNameWithoutExtension(assetPath));
+            MakeAnimationClip(untaggedName, true, frameIndices);
         }
 
         private void MakeAnimationClip(string name, bool isLooping, List<int> frameIndices)
