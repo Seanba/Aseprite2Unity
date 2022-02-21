@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.Experimental.AssetImporters;
+using UnityEditor.AssetImporters;
 using UnityEngine;
 using UnityEngine.U2D;
 
@@ -12,7 +12,7 @@ namespace Aseprite2Unity.Editor
     [ScriptedImporter(4, new string[] { "aseprite", "ase" })]
     public class AsepriteImporter : ScriptedImporter, IAseVisitor
     {
-        public const string Version = "1.1.2";
+        public const string Version = "1.1.3";
 
         private readonly static Color m_TransparentColor = new Color32(0, 0, 0, 0);
 
@@ -28,7 +28,7 @@ namespace Aseprite2Unity.Editor
         private GameObject m_GameObject;
 
         private List<Color> m_Palette;
-        AssetImportContext m_Context;
+        private AssetImportContext m_Context;
         private AseFile m_AseFile;
 
         private Color[] m_ClearPixels;

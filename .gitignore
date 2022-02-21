@@ -5,6 +5,9 @@
 [Bb]uilds/
 Assets/AssetStoreTools*
 
+Aseprite2Unity/Logs/*
+Aseprite2Unity/UserSettings/*
+
 # Visual Studio cache directory
 .vs/
 
@@ -42,3 +45,4 @@ docs/_build
 # Test data
 Aseprite2Unity/Assets/TestData/
 Aseprite2Unity/Assets/TestData.meta
+Aseprite2Unity/.vsconfig

@@ -1,7 +1,7 @@
 @echo off
 pushd %~dp0
 
-set UnityExe="C:\Program Files\Unity\Hub\Editor\2019.2.1f1\Editor\Unity.exe"
+set UnityExe="C:\Program Files\Unity\Hub\Editor\2020.3.29f1\Editor\Unity.exe"
 set UnityProj="../Aseprite2Unity"
 set UnityMethod=Aseprite2Unity.Editor.Deploy.DeployAseprite2Unity
 
