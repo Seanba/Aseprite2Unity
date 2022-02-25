@@ -19,6 +19,7 @@ namespace Aseprite2Unity.Editor
         // Editor fields
         public float m_PixelsPerUnit = 100.0f;
         public SpriteAtlas m_SpriteAtlas;
+        public Material m_SpriteMaterial;
         public float m_FrameRate = 60.0f;
         public string m_SortingLayerName;
         public int m_SortingOrder;
@@ -95,6 +96,11 @@ namespace Aseprite2Unity.Editor
 
             var renderer = m_GameObject.AddComponent<SpriteRenderer>();
             renderer.sprite = m_Sprites[0];
+            if (m_SpriteMaterial != null)
+            {
+                renderer.material = m_SpriteMaterial;
+            }
+            
             renderer.sortingLayerName = m_SortingLayerName;
             renderer.sortingOrder = m_SortingOrder;
 
@@ -421,7 +427,7 @@ namespace Aseprite2Unity.Editor
                 var key = new ObjectReferenceKeyframe();
                 key.time = time;
                 key.value = m_Sprites[frameIndex];
-                time += m_Frames[frameIndex].FrameDurationMs / 1000.0f;
+                time += (m_Frames[frameIndex].FrameDurationMs / 1000.0f) * (60f / clip.frameRate);
 
                 keys[i] = key;
             }

@@ -46,6 +46,9 @@ namespace Aseprite2Unity.Editor
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("m_SpriteAtlas"),
                     new GUIContent("Sprite Atlas", "The sprites created by this import will be made part of this sprite atlas."));
 
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("m_SpriteMaterial"),
+                    new GUIContent("Sprite Material", "Material for the SpriteRenderer."));
+
                 DisplayStringChoiceProperty(serializedObject.FindProperty("m_SortingLayerName"),
                     SortingLayer.layers.Select(l => l.name).ToArray(),
                     new GUIContent("Sorting Layer", "Name of the SpriteRenderer's sorting layer."));
