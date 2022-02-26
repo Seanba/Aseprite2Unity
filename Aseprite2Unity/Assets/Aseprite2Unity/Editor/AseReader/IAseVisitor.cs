@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Aseprite2Unity.Editor
+﻿namespace Aseprite2Unity.Editor
 {
     public interface IAseVisitor
     {
@@ -17,7 +12,7 @@ namespace Aseprite2Unity.Editor
         void VisitCelChunk(AseCelChunk cel);
         void VisitFrameTagsChunk(AseFrameTagsChunk frameTags);
         void VisitPaletteChunk(AsePaletteChunk palette);
-        void VisitUserDataChunk(AseUserDataChunk useData);
+        void VisitUserDataChunk(AseUserDataChunk userData);
         void VisitSliceChunk(AseSliceChunk slice);
         void VisitDummyChunk(AseDummyChunk dummy);
     }

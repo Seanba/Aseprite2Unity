@@ -2,12 +2,12 @@
 {
     public class AseFrameTagEntry
     {
-        public ushort FromFrame { get; private set; }
-        public ushort ToFrame { get; private set; }
-        public LoopAnimationDirection LoopAnimationDirection { get; private set; }
-        public byte[] ColorRGB { get; private set; }
-        public string Name { get; private set; }
-        public bool IsOneShot { get; private set; }
+        public ushort FromFrame { get; }
+        public ushort ToFrame { get; }
+        public LoopAnimationDirection LoopAnimationDirection { get; }
+        public byte[] ColorRGB { get; }
+        public string Name { get; }
+        public bool IsOneShot { get; }
 
         public AseFrameTagEntry(AseReader reader)
         {

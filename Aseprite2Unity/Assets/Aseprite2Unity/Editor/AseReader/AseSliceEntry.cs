@@ -1,26 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Aseprite2Unity.Editor
+﻿namespace Aseprite2Unity.Editor
 {
     public class AseSliceEntry
     {
-        public uint FrameNumber { get; private set; }
-        public int OriginX { get; private set; }
-        public int OriginY { get; private set; }
-        public uint Width { get; private set; }
-        public uint Height { get; private set; }
+        public uint FrameNumber { get; }
+        public int OriginX { get; }
+        public int OriginY { get; }
+        public uint Width { get; }
+        public uint Height { get; }
 
-        public int CenterX { get; private set; }
-        public int CenterY { get; private set; }
-        public uint CenterWidth { get; private set; }
-        public uint CenterHeight { get; private set; }
+        public int CenterX { get; }
+        public int CenterY { get; }
+        public uint CenterWidth { get; }
+        public uint CenterHeight { get; }
 
-        public int PivotX { get; private set; }
-        public int PivotY { get; private set; }
+        public int PivotX { get; }
+        public int PivotY { get; }
 
         public AseSliceEntry(AseReader reader, SliceFlags flags)
         {

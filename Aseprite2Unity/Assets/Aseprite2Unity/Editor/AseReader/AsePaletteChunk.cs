@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using UnityEngine;
 
 namespace Aseprite2Unity.Editor
 {
@@ -11,11 +7,11 @@ namespace Aseprite2Unity.Editor
     {
         public override ChunkType ChunkType => ChunkType.Palette;
 
-        public int PaletteSize { get; private set; }
-        public int FirstIndex { get; private set; }
-        public int LastIndex { get; private set; }
+        public int PaletteSize { get; }
+        public int FirstIndex { get; }
+        public int LastIndex { get; }
 
-        public List<AsePaletteEntry> Entries { get; private set; }
+        public List<AsePaletteEntry> Entries { get; }
 
         public AsePaletteChunk(AseFrame frame, AseReader reader)
             : base(frame)

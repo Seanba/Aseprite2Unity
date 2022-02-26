@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace Aseprite2Unity.Editor
 {
     public class AseFile
     {
-        public AseHeader Header { get; private set; }
-        public List<AseFrame> Frames { get; private set; }
+        public AseHeader Header { get; }
+        public List<AseFrame> Frames { get; }
 
         public AseFile(AseReader reader)
         {

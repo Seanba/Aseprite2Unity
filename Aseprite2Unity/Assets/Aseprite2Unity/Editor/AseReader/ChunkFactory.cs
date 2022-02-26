@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace Aseprite2Unity.Editor
@@ -13,7 +8,7 @@ namespace Aseprite2Unity.Editor
         public static AseChunk ReadChunk(AseFrame frame, ChunkType type, int size, AseReader reader)
         {
             var pos = reader.Position;
-            AseChunk chunk = null;
+            AseChunk chunk;
 
             switch (type)
             {

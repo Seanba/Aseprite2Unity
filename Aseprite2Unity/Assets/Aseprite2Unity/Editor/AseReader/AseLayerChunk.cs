@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Aseprite2Unity.Editor
+﻿namespace Aseprite2Unity.Editor
 {
     public class AseLayerChunk : AseChunk
     {
         public override ChunkType ChunkType => ChunkType.Layer;
 
-        public LayerChunkFlags Flags { get; private set; }
-        public LayerType Type { get; private set; }
-        public ushort ChildLevel { get; private set; }
-        public BlendMode BlendMode { get; private set; }
-        public byte Opacity { get; private set; }
-        public string Name { get; private set; }
+        public LayerChunkFlags Flags { get; }
+        public LayerType Type { get; }
+        public ushort ChildLevel { get; }
+        public BlendMode BlendMode { get; }
+        public byte Opacity { get; }
+        public string Name { get; }
 
         public bool IsVisible => (Flags & LayerChunkFlags.Visible) != 0;
 

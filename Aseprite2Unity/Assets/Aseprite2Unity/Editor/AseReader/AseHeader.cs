@@ -1,25 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
+﻿using System.Diagnostics;
 
 namespace Aseprite2Unity.Editor
 {
     public class AseHeader
     {
-        public uint FileSize { get; private set; }
-        public ushort MagicNumber { get; private set; }
-        public ushort NumFrames { get; private set; }
-        public ushort Width { get; private set; }
-        public ushort Height { get; private set; }
-        public ColorDepth ColorDepth { get; private set; }
-        public HeaderFlags Flags { get; private set; }
-        public ushort Speed { get; private set; }
-        public byte TransparentIndex { get; private set; }
-        public ushort NumColors { get; private set; }
-        public byte PixelWidth { get; private set; }
-        public byte PixelHeight { get; private set; }
+        public uint FileSize { get; }
+        public ushort MagicNumber { get; }
+        public ushort NumFrames { get; }
+        public ushort Width { get; }
+        public ushort Height { get; }
+        public ColorDepth ColorDepth { get; }
+        public HeaderFlags Flags { get; }
+        public ushort Speed { get; }
+        public byte TransparentIndex { get; }
+        public ushort NumColors { get; }
+        public byte PixelWidth { get; }
+        public byte PixelHeight { get; }
 
         public AseHeader(AseReader reader)
         {

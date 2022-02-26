@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace Aseprite2Unity.Editor
 {
     public class AseFrame
     {
-        public AseFile AseFile { get; private set; }
+        public AseFile AseFile { get; }
 
         public uint NumBytesInFrame { get; }
         public ushort MagicNumber { get; }

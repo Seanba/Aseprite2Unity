@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Aseprite2Unity.Editor
 {
@@ -9,8 +7,8 @@ namespace Aseprite2Unity.Editor
     {
         public override ChunkType ChunkType => ChunkType.FrameTags;
 
-        public ushort NumTags { get; private set; }
-        public List<AseFrameTagEntry> Entries { get; private set; }
+        public ushort NumTags { get; }
+        public List<AseFrameTagEntry> Entries { get; }
 
         public AseFrameTagsChunk(AseFrame frame, AseReader reader)
             : base(frame)

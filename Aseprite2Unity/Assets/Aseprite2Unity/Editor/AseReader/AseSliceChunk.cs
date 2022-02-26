@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Aseprite2Unity.Editor
 {
@@ -9,11 +7,11 @@ namespace Aseprite2Unity.Editor
     {
         public override ChunkType ChunkType => ChunkType.Slice;
 
-        public uint NumSliceKeys { get; private set; }
-        public SliceFlags Flags { get; private set; }
-        public string Name { get; private set; }
+        public uint NumSliceKeys { get; }
+        public SliceFlags Flags { get; }
+        public string Name { get; }
 
-        public List<AseSliceEntry> Entries { get; private set; }
+        public List<AseSliceEntry> Entries { get; }
 
         public AseSliceChunk(AseFrame frame, AseReader reader)
             : base(frame)

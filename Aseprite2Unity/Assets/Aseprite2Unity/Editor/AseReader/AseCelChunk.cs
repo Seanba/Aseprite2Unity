@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Text;
 
 namespace Aseprite2Unity.Editor
 {
@@ -12,18 +9,18 @@ namespace Aseprite2Unity.Editor
     {
         public override ChunkType ChunkType => ChunkType.Cel;
 
-        public ushort LayerIndex { get; private set; }
-        public short PositionX { get; private set; }
-        public short PositionY { get; private set; }
-        public byte Opacity { get; private set; }
-        public CelType CelType { get; private set; }
+        public ushort LayerIndex { get; }
+        public short PositionX { get; }
+        public short PositionY { get; }
+        public byte Opacity { get; }
+        public CelType CelType { get; }
 
-        public ushort Width { get; private set; }
-        public ushort Height { get; private set; }
-        public ushort FramePositionLink { get; private set; }
-        public byte[] PixelBytes { get; private set; }
+        public ushort Width { get; }
+        public ushort Height { get; }
+        public ushort FramePositionLink { get; }
+        public byte[] PixelBytes { get; }
 
-        public AseCelChunk LinkedCel { get; private set; }
+        public AseCelChunk LinkedCel { get; }
 
         public AseCelChunk(AseFrame frame, AseReader reader, int size)
             : base(frame)
