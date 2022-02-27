@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -12,7 +12,7 @@ namespace Aseprite2Unity.Editor
     [ScriptedImporter(4, new string[] { "aseprite", "ase" })]
     public class AsepriteImporter : ScriptedImporter, IAseVisitor
     {
-        public const string Version = "1.1.3";
+        public const string Version = "1.2.0";
 
         private readonly static Color m_TransparentColor = new Color32(0, 0, 0, 0);
 
@@ -20,10 +20,16 @@ namespace Aseprite2Unity.Editor
         public float m_PixelsPerUnit = 100.0f;
         public SpriteAtlas m_SpriteAtlas;
         public float m_FrameRate = 60.0f;
+        public GameObject m_InstantiatedPrefab;
         public string m_SortingLayerName;
         public int m_SortingOrder;
         public AnimatorCullingMode m_AnimatorCullingMode = AnimatorCullingMode.AlwaysAnimate;
         public RuntimeAnimatorController m_AnimatorController;
+
+        private readonly List<AseLayerChunk> m_Layers = new List<AseLayerChunk>();
+        private readonly List<AseFrame> m_Frames = new List<AseFrame>();
+        private readonly List<Sprite> m_Sprites = new List<Sprite>();
+        private readonly List<AnimationClip> m_Clips = new List<AnimationClip>();
 
         private GameObject m_GameObject;
 
@@ -33,10 +39,6 @@ namespace Aseprite2Unity.Editor
 
         private Color[] m_ClearPixels;
         private Texture2D m_Texture2D;
-        private List<AseLayerChunk> m_Layers = new List<AseLayerChunk>();
-        private List<AseFrame> m_Frames = new List<AseFrame>();
-        private List<Sprite> m_Sprites = new List<Sprite>();
-        private List<AnimationClip> m_Clips = new List<AnimationClip>();
         private AseFrameTagsChunk m_AseFrameTagsChunk;
         private Vector2? m_Pivot;
 
@@ -80,7 +82,17 @@ namespace Aseprite2Unity.Editor
 
             var icon = AssetDatabaseEx.LoadFirstAssetByFilter<Texture2D>("aseprite2unity-icon-0x1badd00d");
 
-            m_GameObject = new GameObject(Path.GetFileNameWithoutExtension(assetPath));
+            // Use the instantatiated prefab or create a new game object we add components to
+            if (m_InstantiatedPrefab != null)
+            {
+                m_GameObject = Instantiate(m_InstantiatedPrefab);
+            }
+            else
+            {
+                m_GameObject = new GameObject();
+            }
+
+            m_GameObject.name = Path.GetFileNameWithoutExtension(assetPath);
             m_Context.AddObjectToAsset("_main", m_GameObject, icon);
             m_Context.SetMainObject(m_GameObject);
         }
@@ -93,14 +105,25 @@ namespace Aseprite2Unity.Editor
 
             BuildAnimations();
 
-            var renderer = m_GameObject.AddComponent<SpriteRenderer>();
-            renderer.sprite = m_Sprites[0];
-            renderer.sortingLayerName = m_SortingLayerName;
-            renderer.sortingOrder = m_SortingOrder;
+            // Add a sprite renderer if needed and assign our sprite to it
+            var renderer = m_GameObject.GetComponent<SpriteRenderer>();
+            if (renderer == null)
+            {
+                renderer = m_GameObject.AddComponent<SpriteRenderer>();
+                renderer.sortingLayerName = m_SortingLayerName;
+                renderer.sortingOrder = m_SortingOrder;
+            }
 
-            var animator = m_GameObject.AddComponent<Animator>();
-            animator.runtimeAnimatorController = m_AnimatorController;
-            animator.cullingMode = m_AnimatorCullingMode;
+            renderer.sprite = m_Sprites[0];
+
+            // Add an animator if needed
+            var animator = m_GameObject.GetComponent<Animator>();
+            if (animator == null)
+            {
+                animator = m_GameObject.AddComponent<Animator>();
+                animator.runtimeAnimatorController = m_AnimatorController;
+                animator.cullingMode = m_AnimatorCullingMode;
+            }
 
             m_AseFile = null;
             m_Context = null;
@@ -239,7 +262,7 @@ namespace Aseprite2Unity.Editor
             }
         }
 
-        public void VisitUserDataChunk(AseUserDataChunk useData)
+        public void VisitUserDataChunk(AseUserDataChunk userData)
         {
         }
 
@@ -414,6 +437,9 @@ namespace Aseprite2Unity.Editor
             var time = 0.0f;
             var keys = new ObjectReferenceKeyframe[frameIndices.Count];
 
+            // Keep track of animation events
+            List<AnimationEvent> animationEvents = new List<AnimationEvent>();
+
             for (int i = 0; i < keys.Length; i++)
             {
                 var frameIndex = frameIndices[i];
@@ -421,9 +447,33 @@ namespace Aseprite2Unity.Editor
                 var key = new ObjectReferenceKeyframe();
                 key.time = time;
                 key.value = m_Sprites[frameIndex];
-                time += m_Frames[frameIndex].FrameDurationMs / 1000.0f;
-
                 keys[i] = key;
+
+                // Are there any animation events to add for this frame?
+                var frame = m_Frames[frameIndex];
+                foreach (var celData in frame.Chunks.OfType<AseCelChunk>())
+                {
+                    // Cel data on invisible layers is ignored
+                    if (m_Layers[celData.LayerIndex].IsVisible && !string.IsNullOrEmpty(celData.UserDataText))
+                    {
+                        // Is the user data of "event:SomeName" format?
+                        const string eventTag = "event:";
+                        if (celData.UserDataText.StartsWith(eventTag, StringComparison.OrdinalIgnoreCase))
+                        {
+                            string eventName = celData.UserDataText.Substring(eventTag.Length);
+                            if (!string.IsNullOrEmpty(eventName))
+                            {
+                                var animationEvent = new AnimationEvent();
+                                animationEvent.functionName = eventName;
+                                animationEvent.time = time;
+                                animationEvents.Add(animationEvent);
+                            }
+                        }
+                    }
+                }
+
+                // Advance time for next frame
+                time += m_Frames[frameIndex].FrameDurationMs / 1000.0f;
             }
 
             AnimationUtility.SetObjectReferenceCurve(clip, binding, keys);
@@ -434,6 +484,12 @@ namespace Aseprite2Unity.Editor
             settings.stopTime = time;
             settings.loopTime = isLooping;
             AnimationUtility.SetAnimationClipSettings(clip, settings);
+
+            // Animation events
+            if (animationEvents.Any())
+            {
+                AnimationUtility.SetAnimationEvents(clip, animationEvents.ToArray());
+            }
 
             m_Context.AddObjectToAsset(clip.name, clip);
             m_Clips.Add(clip);

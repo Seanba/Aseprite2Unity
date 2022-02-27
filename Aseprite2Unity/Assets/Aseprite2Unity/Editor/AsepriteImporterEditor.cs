@@ -40,18 +40,21 @@ namespace Aseprite2Unity.Editor
             {
                 EditorGUI.indentLevel++;
 
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("m_PixelsPerUnit"),
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(AsepriteImporter.m_PixelsPerUnit)),
                     new GUIContent("Pixels Per Unit", "How many pixels make up a unit. Default is 100. Use this the same as you would in the Texture Importer settings for sprites."));
 
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("m_SpriteAtlas"),
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(AsepriteImporter.m_SpriteAtlas)),
                     new GUIContent("Sprite Atlas", "The sprites created by this import will be made part of this sprite atlas."));
 
-                DisplayStringChoiceProperty(serializedObject.FindProperty("m_SortingLayerName"),
-                    SortingLayer.layers.Select(l => l.name).ToArray(),
-                    new GUIContent("Sorting Layer", "Name of the SpriteRenderer's sorting layer."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(AsepriteImporter.m_InstantiatedPrefab)),
+                    new GUIContent("Instantiated Prefab", "Prefab that animated sprite is configured with. Use this to create sprites with additional scripting or components."));
 
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("m_SortingOrder"),
-                    new GUIContent("Order in Layer", "SpriteRenderer's order within a sorting layer."));
+                DisplayStringChoiceProperty(serializedObject.FindProperty(nameof(AsepriteImporter.m_SortingLayerName)),
+                    SortingLayer.layers.Select(l => l.name).ToArray(),
+                    new GUIContent("Sorting Layer", "Name of the SpriteRenderer's sorting layer. If Instantiated Prefab has a Sprite Renderer then this will not be used."));
+
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(AsepriteImporter.m_SortingOrder)),
+                    new GUIContent("Order in Layer", "SpriteRenderer's order within a sorting layer. If Instantiated Prefab has a Sprite Renderer then this will not be used."));
 
                 EditorGUI.indentLevel--;
             }
@@ -62,15 +65,15 @@ namespace Aseprite2Unity.Editor
             {
                 EditorGUI.indentLevel++;
 
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("m_FrameRate"),
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(AsepriteImporter.m_FrameRate)),
                     new GUIContent("Frame Rate", "How often sprite animations are sampled."));
 
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("m_AnimatorController"),
-                    new GUIContent("Animator Controller", "Animator Controller to use with the imported sprite."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(AsepriteImporter.m_AnimatorController)),
+                    new GUIContent("Animator Controller", "Animator Controller to use with the imported sprite. If Instantiated Prefab has an Animator component then this will not be used."));
 
-                DisplayEnumProperty(serializedObject.FindProperty("m_AnimatorCullingMode"),
+                DisplayEnumProperty(serializedObject.FindProperty(nameof(AsepriteImporter.m_AnimatorCullingMode)),
                     m_AnimatorCullingModeNames,
-                    new GUIContent("Culling Mode", "Controls how the animation is updated when the object is culled."));
+                    new GUIContent("Culling Mode", "Controls how the animation is updated when the object is culled. If Instantiated Prefab has an Animator component then this will not be used."));
 
                 EditorGUI.indentLevel--;
             }

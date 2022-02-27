@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace Aseprite2Unity.Examples.MegaDad
@@ -11,6 +6,9 @@ namespace Aseprite2Unity.Examples.MegaDad
     // Simple script that animates our MegaDad sprite
     public class MegaDadScript : MonoBehaviour
     {
+        public AudioClip m_AudioLadder1;
+        public AudioClip m_AudioLadder2;
+
         // Gravity/Acceleration is pixels-per-second-squared
         private const float Gravity_pps2 = 360.0f;
         private const float GroundPlane = 0.0f;
@@ -24,6 +22,7 @@ namespace Aseprite2Unity.Examples.MegaDad
 
         private Animator m_Animator;
         private SpriteRenderer m_SpriteRenderer;
+        private AudioSource m_AudioSource;
 
         public enum PhysicalState
         {
@@ -40,6 +39,24 @@ namespace Aseprite2Unity.Examples.MegaDad
         private int m_InputY;
         private bool m_InputJump;
 
+        // Animation event - called from animation clip
+        public void DoClimb1()
+        {
+            if (m_AudioLadder1 != null)
+            {
+                m_AudioSource.PlayOneShot(m_AudioLadder1);
+            }
+        }
+
+        // Animation event - called from animation clip
+        public void DoClimb2()
+        {
+            if (m_AudioLadder2 != null)
+            {
+                m_AudioSource.PlayOneShot(m_AudioLadder2);
+            }
+        }
+
         private void Awake()
         {
             m_Animator = GetComponentInChildren<Animator>();
@@ -47,6 +64,9 @@ namespace Aseprite2Unity.Examples.MegaDad
 
             m_SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
             Assert.IsNotNull(m_SpriteRenderer);
+
+            m_AudioSource = GetComponentInChildren<AudioSource>();
+            Assert.IsNotNull(m_AudioSource);
 
             ChangePhysicalState(PhysicalState.OnGround);
         }
