@@ -18,7 +18,6 @@ namespace Aseprite2Unity.Editor
 
         // Editor fields
         public float m_PixelsPerUnit = 100.0f;
-        public SpriteAtlas m_SpriteAtlas;
         public float m_FrameRate = 60.0f;
         public GameObject m_InstantiatedPrefab;
         public string m_SortingLayerName;
@@ -55,7 +54,7 @@ namespace Aseprite2Unity.Editor
 #if UNITY_2018_3_OR_NEWER
             m_Context = ctx;
 
-            using (var reader = new AseReader(ctx.assetPath))
+            using (var reader = new AseReader(m_Context.assetPath))
             {
                 m_AseFile = new AseFile(reader);
                 m_AseFile.VisitContents(this);
@@ -69,8 +68,6 @@ namespace Aseprite2Unity.Editor
 
         public void BeginFileVisit(AseFile file)
         {
-            SpriteAtlasUserAsset.RemoveSpritesFromAtlas(assetPath);
-
             m_AseFile = file;
             m_Pivot = null;
 
@@ -99,10 +96,6 @@ namespace Aseprite2Unity.Editor
 
         public void EndFileVisit(AseFile file)
         {
-            // Add sprites to sprite atlas (or more correctly, add the scritable object that will add the sprites when import completes)
-            var spriteAtlasUser = SpriteAtlasUserAsset.CreateSpriteAtlasUserAsset(m_SpriteAtlas);
-            m_Context.AddObjectToAsset("__atlas", spriteAtlasUser);
-
             BuildAnimations();
 
             // Add a sprite renderer if needed and assign our sprite to it

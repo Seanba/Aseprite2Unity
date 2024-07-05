@@ -43,9 +43,6 @@ namespace Aseprite2Unity.Editor
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(AsepriteImporter.m_PixelsPerUnit)),
                     new GUIContent("Pixels Per Unit", "How many pixels make up a unit. Default is 100. Use this the same as you would in the Texture Importer settings for sprites."));
 
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(AsepriteImporter.m_SpriteAtlas)),
-                    new GUIContent("Sprite Atlas", "The sprites created by this import will be made part of this sprite atlas."));
-
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(AsepriteImporter.m_InstantiatedPrefab)),
                     new GUIContent("Instantiated Prefab", "Prefab that animated sprite is configured with. Use this to create sprites with additional scripting or components."));
 
