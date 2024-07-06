@@ -1,0 +1,104 @@
+fileFormatVersion: 2
+guid: c3d8754dbf40fbc49ae54c44920b5b0a
+ScriptedImporter:
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: _main/mega-dad
+  - first:
+      4: 400000
+    second: _main/mega-dad/Transform
+  - first:
+      28: 2800016
+    second: mega-dad_tex2d_0
+  - first:
+      28: 2800018
+    second: mega-dad_tex2d_1
+  - first:
+      28: 2800020
+    second: mega-dad_tex2d_2
+  - first:
+      28: 2800022
+    second: mega-dad_tex2d_3
+  - first:
+      28: 2800024
+    second: mega-dad_tex2d_4
+  - first:
+      28: 2800026
+    second: mega-dad_tex2d_5
+  - first:
+      28: 2800028
+    second: mega-dad_tex2d_6
+  - first:
+      28: 2800030
+    second: mega-dad_tex2d_7
+  - first:
+      74: 7400000
+    second: anim_Idle
+  - first:
+      74: 7400002
+    second: anim_Run
+  - first:
+      74: 7400006
+    second: anim_Jump
+  - first:
+      74: 7400008
+    second: anim_Untagged
+  - first:
+      74: 7400012
+    second: anim_Climb1
+  - first:
+      74: 7400014
+    second: anim_Climb2
+  - first:
+      95: 9500000
+    second: _main/mega-dad/Animator
+  - first:
+      114: 11400000
+    second: __atlas
+  - first:
+      212: 21200000
+    second: _main/mega-dad/SpriteRenderer
+  - first:
+      213: 21300016
+    second: mega-dad_sprite_0
+  - first:
+      213: 21300018
+    second: mega-dad_sprite_1
+  - first:
+      213: 21300020
+    second: mega-dad_sprite_2
+  - first:
+      213: 21300022
+    second: mega-dad_sprite_3
+  - first:
+      213: 21300024
+    second: mega-dad_sprite_4
+  - first:
+      213: 21300026
+    second: mega-dad_sprite_5
+  - first:
+      213: 21300028
+    second: mega-dad_sprite_6
+  - first:
+      213: 21300030
+    second: mega-dad_sprite_7
+  - first:
+      1001: 100100000
+    second: _main
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: b1577cdc41d01fa4dbf68ad51122a765, type: 3}
+  pixelsPerUnit: 1
+  spriteAtlas: {instanceID: 0}
+  frameRate: 24
+  instantiatedPrefab: {fileID: 3288147003639597545, guid: 4a85b6e5fd584eb4e8e2ef7f19da71b9,
+    type: 3}
+  sortingLayerName: 
+  sortingOrder: 0
+  animatorCullingMode: 0
+  animatorController: {instanceID: 0}
+  errors: []

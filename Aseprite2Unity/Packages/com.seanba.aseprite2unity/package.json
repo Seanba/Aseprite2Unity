@@ -1,0 +1,26 @@
+{
+  "name": "com.seanba.aseprite2unity",
+  "version": "2.3.0",
+  "displayName": "Aseprite2Unity",
+  "description": "Imports Aseprite files into Unity",
+  "unity": "2020.3",
+  "dependencies": {
+  },
+  "keywords": [
+    "Aseprite",
+    "Importer",
+    "Plugin"
+  ],
+  "author": {
+    "name": "Sean Barton",
+    "email": "sean@seanba.com",
+    "url": "https://seanba.com/"
+  },
+  "samples": [
+    {
+      "displayName": "MegaDad",
+      "description": "Simple MegaDad animated sprite. Supports idle, running, climbing, and jumping animations",
+      "path": "Samples~/MegaDad"
+    }
+  ]
+}
