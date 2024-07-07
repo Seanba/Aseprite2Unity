@@ -5,7 +5,7 @@ try
     Push-Location $PSScriptRoot
 
     # Get the current version of Aseprite2Unity
-    $package_dir = '../Packages/com.seanba.aseprite2unity'
+    $package_dir = '../Aseprite2Unity/Packages/com.seanba.aseprite2unity'
     $package_json = "$package_dir/package.json"
     $version = (Get-Content $package_json | ConvertFrom-Json).version
     $output = "aseprite2unity.v$version.zip"
