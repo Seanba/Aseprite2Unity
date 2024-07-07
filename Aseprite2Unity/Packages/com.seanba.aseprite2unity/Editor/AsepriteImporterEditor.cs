@@ -33,7 +33,7 @@ namespace Aseprite2Unity.Editor
                 EditorGUILayout.Separator();
             }
 
-            EditorGUILayout.LabelField("Aseprite2Unity Version: " + AsepriteImporter.Version);
+            EditorGUILayout.LabelField($"Aseprite2Unity Version: {Config.Version}");
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Sprite Settings", EditorStyles.boldLabel);

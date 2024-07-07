@@ -14,7 +14,6 @@ namespace Aseprite2Unity.Editor
         {
             var assetsToSerialize = new HashSet<string>();
 
-            // fixit - double check that we really need this hack.
             // Unity has an odd bug with animation controllers that requires them to be dirtied and force-serialized
             // Otherwise animations may not work until Unity is restarted, which is not ideal
             foreach (var ase in importedAssets.Where(a => IsAsepriteAsset(a)))

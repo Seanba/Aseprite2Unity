@@ -5,15 +5,12 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.AssetImporters;
 using UnityEngine;
-using UnityEngine.U2D;
 
 namespace Aseprite2Unity.Editor
 {
-    [ScriptedImporter(4, new string[] { "aseprite", "ase" })]
+    [ScriptedImporter(5, new string[] { "aseprite", "ase" }, 5000)]
     public class AsepriteImporter : ScriptedImporter, IAseVisitor
     {
-        public const string Version = "1.2.0";
-
         private readonly static Color m_TransparentColor = new Color32(0, 0, 0, 0);
 
         // Editor fields
