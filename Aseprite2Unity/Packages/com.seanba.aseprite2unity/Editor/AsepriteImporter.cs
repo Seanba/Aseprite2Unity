@@ -406,9 +406,12 @@ namespace Aseprite2Unity.Editor
                 }
             }
 
-            // Make an animation out of any left over (untagged) frames
-            string untaggedName = string.Format("{0}.Animations.Untagged", Path.GetFileNameWithoutExtension(assetPath));
-            MakeAnimationClip(untaggedName, true, frameIndices);
+            if (frameIndices.Count > 0)
+            {
+                // Make an animation out of any left over (untagged) frames
+                string untaggedName = string.Format("{0}.Animations.Untagged", Path.GetFileNameWithoutExtension(assetPath));
+                MakeAnimationClip(untaggedName, true, frameIndices);
+            }
         }
 
         private void MakeAnimationClip(string name, bool isLooping, List<int> frameIndices)
