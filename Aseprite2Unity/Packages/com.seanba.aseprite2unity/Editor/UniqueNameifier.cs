@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Aseprite2Unity.Editor
 {
@@ -9,7 +8,7 @@ namespace Aseprite2Unity.Editor
     // Will turn [Name] into [Name (1)], [Name (2)], etc. similar to how Unity gives unique names to objects
     public class UniqueNameifier
     {
-        private HashSet<string> m_Names = new HashSet<string>();
+        private readonly HashSet<string> m_Names = new HashSet<string>();
 
         public string MakeUniqueName(string name)
         {

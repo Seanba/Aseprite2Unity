@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Aseprite2Unity.Editor
 {
-    [ScriptedImporter(5, new string[] { "aseprite", "ase" }, 5000)]
+    [ScriptedImporter(6, new string[] { "aseprite", "ase" }, 5000)]
     public class AsepriteImporter : ScriptedImporter, IAseVisitor
     {
         private readonly static Color m_TransparentColor = new Color32(0, 0, 0, 0);
@@ -48,7 +48,7 @@ namespace Aseprite2Unity.Editor
         {
             m_Errors.Clear();
 
-#if UNITY_2018_3_OR_NEWER
+#if UNITY_2020_3_OR_NEWER
             m_Context = ctx;
 
             using (var reader = new AseReader(m_Context.assetPath))
@@ -57,7 +57,7 @@ namespace Aseprite2Unity.Editor
                 m_AseFile.VisitContents(this);
             }
 #else
-            string msg = string.Format("Aesprite2Unity requires Unity 2018.3 or later. You are using {0}", Application.unityVersion);
+            string msg = string.Format("Aesprite2Unity requires Unity 2020.3 or later. You are using {0}", Application.unityVersion);
             m_Errors.Add(msg);
             Debug.LogError(msg);
 #endif

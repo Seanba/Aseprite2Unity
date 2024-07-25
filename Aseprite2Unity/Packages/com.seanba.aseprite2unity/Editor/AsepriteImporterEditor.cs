@@ -20,9 +20,8 @@ namespace Aseprite2Unity.Editor
 
         public override void OnInspectorGUI()
         {
-#if UNITY_2019_2_OR_NEWER
             serializedObject.Update();
-#endif
+
             var importer = serializedObject.targetObject as AsepriteImporter;
 
             if (importer.Errors.Any())
@@ -34,6 +33,9 @@ namespace Aseprite2Unity.Editor
             }
 
             EditorGUILayout.LabelField($"Aseprite2Unity Version: {Config.Version}");
+            EditorGUILayout.Space();
+
+            ExportAnimatorControllerGui();
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Sprite Settings", EditorStyles.boldLabel);
@@ -75,16 +77,63 @@ namespace Aseprite2Unity.Editor
                 EditorGUI.indentLevel--;
             }
 
-#if UNITY_2019_2_OR_NEWER
             serializedObject.ApplyModifiedProperties();
-#endif
+
             ApplyRevertGUI();
 
             EditorGUILayout.HelpBox("Tip: You can change sprite pivot by adding a pivot slice named unity:pivot to your first frame in Aseprite.", MessageType.Info);
             EditorGUILayout.HelpBox("Tip: Animations in Aseprite loop by default. Surround Frame Tag names with square brackets to disable looping. For example, [MyAnimName].", MessageType.Info);
         }
 
-        static void DisplayEnumProperty(SerializedProperty prop, string[] displayNames, GUIContent guicontent)
+        private void ExportAnimatorControllerGui()
+        {
+            if (serializedObject.targetObject is AsepriteImporter importer)
+            {
+                if (GUILayout.Button("Export Default Animator Controller"))
+                {
+                    // Creates the controller and prompts the user in case they are about to overwrite and existing file
+                    var animationControllerAssetPath = EditorUtility.SaveFilePanelInProject("Save Animator Controller", $"{Path.GetFileNameWithoutExtension(importer.assetPath)}.AnimatorController",
+                        "controller",
+                        "Chose location for Animation Controller",
+                        Path.GetDirectoryName(importer.assetPath));
+
+                    if (!string.IsNullOrEmpty(animationControllerAssetPath))
+                    {
+                        // If we are overwriting then it means the asset already exists. We must delete it first.
+                        if (AssetDatabase.LoadMainAssetAtPath(animationControllerAssetPath) != null)
+                        {
+                            AssetDatabase.DeleteAsset(animationControllerAssetPath);
+                        }
+
+                        // Create the new animation controller asset
+                        var controller = UnityEditor.Animations.AnimatorController.CreateAnimatorControllerAtPath(animationControllerAssetPath);
+
+                        // Add a state for every animation clip in our Aseprite asset
+                        var fsm = controller.layers[0].stateMachine;
+                        var position = fsm.entryPosition;
+                        position.x += 200;
+
+                        var prefix = $"{Path.GetFileNameWithoutExtension(importer.assetPath)}.Animations.";
+                        var clips = AssetDatabase.LoadAllAssetsAtPath(importer.assetPath).OfType<AnimationClip>().OrderBy(a => a.name);
+                        foreach (var clip in clips)
+                        {
+                            var name = clip.name;
+                            if (name.StartsWith(prefix))
+                            {
+                                name = name.Substring(prefix.Length);
+                            }
+
+                            name = name.Replace('.', '_');
+                            var state = fsm.AddState(name, position);
+                            state.motion = clip;
+                            position.y += 80;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void DisplayEnumProperty(SerializedProperty prop, string[] displayNames, GUIContent guicontent)
         {
             var rect = EditorGUILayout.GetControlRect();
             EditorGUI.BeginProperty(rect, guicontent, prop);
@@ -107,7 +156,7 @@ namespace Aseprite2Unity.Editor
             EditorGUI.EndProperty();
         }
 
-        static void DisplayStringChoiceProperty(SerializedProperty prop, string[] choices, GUIContent content)
+        private static void DisplayStringChoiceProperty(SerializedProperty prop, string[] choices, GUIContent content)
         {
             var rect = EditorGUILayout.GetControlRect();
             EditorGUI.BeginProperty(rect, content, prop);
