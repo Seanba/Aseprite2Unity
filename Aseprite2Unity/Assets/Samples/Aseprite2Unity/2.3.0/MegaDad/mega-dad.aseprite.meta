@@ -93,12 +93,11 @@ ScriptedImporter:
   assetBundleVariant: 
   script: {fileID: 11500000, guid: b1577cdc41d01fa4dbf68ad51122a765, type: 3}
   pixelsPerUnit: 1
-  spriteAtlas: {instanceID: 0}
   frameRate: 24
   instantiatedPrefab: {fileID: 3288147003639597545, guid: 4a85b6e5fd584eb4e8e2ef7f19da71b9,
     type: 3}
   sortingLayerName: 
   sortingOrder: 0
   animatorCullingMode: 0
-  animatorController: {instanceID: 0}
+  animatorController: {fileID: 9100000, guid: d89f0749a99ee6b468551d3079cc0d0a, type: 2}
   errors: []

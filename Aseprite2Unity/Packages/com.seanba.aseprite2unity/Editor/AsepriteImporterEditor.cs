@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.AssetImporters;
 using UnityEngine;
 
@@ -97,16 +98,25 @@ namespace Aseprite2Unity.Editor
                         "Chose location for Animation Controller",
                         Path.GetDirectoryName(importer.assetPath));
 
+                    // fixit - what if animation clips have the same name? Do we protect against duplicates like that?
                     if (!string.IsNullOrEmpty(animationControllerAssetPath))
                     {
-                        // If we are overwriting then it means the asset already exists. We must delete it first.
-                        if (AssetDatabase.LoadMainAssetAtPath(animationControllerAssetPath) != null)
-                        {
-                            AssetDatabase.DeleteAsset(animationControllerAssetPath);
-                        }
+                        var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(animationControllerAssetPath);
 
-                        // Create the new animation controller asset
-                        var controller = UnityEditor.Animations.AnimatorController.CreateAnimatorControllerAtPath(animationControllerAssetPath);
+                        if (controller == null)
+                        {
+                            // We're using a brand new animator controller
+                            controller = UnityEditor.Animations.AnimatorController.CreateAnimatorControllerAtPath(animationControllerAssetPath);
+                        }
+                        else
+                        {
+                            // Remove old states from animator controller that already exists
+                            var machine = controller.layers[0].stateMachine;
+                            foreach (var state in machine.states.ToArray())
+                            {
+                                machine.RemoveState(state.state);
+                            }
+                        }
 
                         // Add a state for every animation clip in our Aseprite asset
                         var fsm = controller.layers[0].stateMachine;

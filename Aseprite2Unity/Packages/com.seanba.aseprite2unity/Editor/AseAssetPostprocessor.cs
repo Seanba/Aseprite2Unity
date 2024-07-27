@@ -10,6 +10,7 @@ namespace Aseprite2Unity.Editor
     {
         private static readonly string[] OurAssetExtensions = new string[] { ".ase", ".aseprite" };
 
+        /* // fixit - wtf?
         private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             var assetsToSerialize = new HashSet<string>();
@@ -31,6 +32,7 @@ namespace Aseprite2Unity.Editor
 
             AssetDatabase.ForceReserializeAssets(assetsToSerialize, ForceReserializeAssetsOptions.ReserializeAssets);
         }
+        */
 
         private static bool IsAsepriteAsset(string path)
         {
