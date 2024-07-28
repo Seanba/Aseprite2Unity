@@ -89,6 +89,14 @@ namespace Aseprite2Unity.Editor
             m_GameObject.name = Path.GetFileNameWithoutExtension(assetPath);
             m_Context.AddObjectToAsset("_main", m_GameObject, icon);
             m_Context.SetMainObject(m_GameObject);
+
+            if (m_InstantiatedPrefab != null)
+            {
+                // We want this asset to be reimported when the prefab changes
+                var prefabPath = AssetDatabase.GetAssetPath(m_InstantiatedPrefab);
+                m_Context.DependsOnArtifact(prefabPath);
+                m_Context.DependsOnSourceAsset(prefabPath);
+            }
         }
 
         public void EndFileVisit(AseFile file)
@@ -149,14 +157,14 @@ namespace Aseprite2Unity.Editor
 
             // The texture should be ready to be added to our asset
             m_Texture2D.Apply();
-            m_Context.AddObjectToAsset(m_Texture2D.name, m_Texture2D);
+            m_Context.AddObjectToAsset(m_Texture2D.name, m_Texture2D); // fixit - check for m_Texture2D.name change
 
             // Make a sprite out of the texture
             var pivot = m_Pivot ?? new Vector2(0.5f, 0.5f);
             var sprite = Sprite.Create(m_Texture2D, new Rect(0, 0, m_Texture2D.width, m_Texture2D.height), pivot, m_PixelsPerUnit);
             sprite.name = string.Format("{0}.Sprites._{1}", Path.GetFileNameWithoutExtension(assetPath), m_Sprites.Count);
             m_Sprites.Add(sprite);
-            m_Context.AddObjectToAsset(sprite.name, sprite);
+            m_Context.AddObjectToAsset(sprite.name, sprite); // fixit - id changes if sprite.name changes
         }
 
         public void VisitCelChunk(AseCelChunk cel)
@@ -398,7 +406,7 @@ namespace Aseprite2Unity.Editor
                 foreach (var entry in m_AseFrameTagsChunk.Entries)
                 {
                     var animIndices = Enumerable.Range(entry.FromFrame, entry.ToFrame - entry.FromFrame + 1).ToList();
-                    string animName = string.Format("{0}.Animations.{1}", Path.GetFileNameWithoutExtension(assetPath), entry.Name);
+                    string animName = string.Format("{0}.Animations.{1}", Path.GetFileNameWithoutExtension(assetPath), entry.Name); // fixit - id name change problem
                     MakeAnimationClip(animName, !entry.IsOneShot, animIndices);
 
                     // Remove the indices from the pool of animation frames
@@ -410,7 +418,7 @@ namespace Aseprite2Unity.Editor
             {
                 // Make an animation out of any left over (untagged) frames
                 string untaggedName = string.Format("{0}.Animations.Untagged", Path.GetFileNameWithoutExtension(assetPath));
-                MakeAnimationClip(untaggedName, true, frameIndices);
+                MakeAnimationClip(untaggedName, true, frameIndices); // fixit - id name change problem
             }
         }
 
@@ -484,7 +492,7 @@ namespace Aseprite2Unity.Editor
                 AnimationUtility.SetAnimationEvents(clip, animationEvents.ToArray());
             }
 
-            m_Context.AddObjectToAsset(clip.name, clip);
+            m_Context.AddObjectToAsset(clip.name, clip); // fixit - check for clip.name change
             m_Clips.Add(clip);
         }
     }
