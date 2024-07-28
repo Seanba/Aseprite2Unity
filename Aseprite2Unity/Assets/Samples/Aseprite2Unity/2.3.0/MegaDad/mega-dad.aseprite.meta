@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c3d8754dbf40fbc49ae54c44920b5b0a
+guid: 17d6ed918dd1b554ca25c7ea7bb07cbd
 ScriptedImporter:
   internalIDToNameTable:
   - first:
@@ -94,10 +94,10 @@ ScriptedImporter:
   script: {fileID: 11500000, guid: b1577cdc41d01fa4dbf68ad51122a765, type: 3}
   pixelsPerUnit: 1
   frameRate: 24
-  instantiatedPrefab: {fileID: 3288147003639597545, guid: 4a85b6e5fd584eb4e8e2ef7f19da71b9,
+  instantiatedPrefab: {fileID: 3288147003639597545, guid: 2c6bd88553f5c1343b23c612e5940566,
     type: 3}
   sortingLayerName: 
   sortingOrder: 0
   animatorCullingMode: 0
-  animatorController: {fileID: 9100000, guid: d89f0749a99ee6b468551d3079cc0d0a, type: 2}
+  animatorController: {fileID: 9100000, guid: 1264cfddb4233f04985194d16a0ec958, type: 2}
   errors: []

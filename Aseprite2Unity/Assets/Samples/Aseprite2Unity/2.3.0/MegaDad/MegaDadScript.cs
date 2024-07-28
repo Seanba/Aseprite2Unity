@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Assertions;
 
+// fixit - go through all assets in example and come up with consistent naming convention
 namespace Aseprite2Unity.Examples.MegaDad
 {
     // Simple script that animates our MegaDad sprite
