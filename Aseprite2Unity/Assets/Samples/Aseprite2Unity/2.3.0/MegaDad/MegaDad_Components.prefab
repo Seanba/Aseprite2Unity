@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6104996580625136047}
   - component: {fileID: -3938831481916799788}
   m_Layer: 0
-  m_Name: MegaDadPrefab
+  m_Name: MegaDad_Components
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
