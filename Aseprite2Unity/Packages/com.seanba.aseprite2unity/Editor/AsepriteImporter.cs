@@ -134,7 +134,7 @@ namespace Aseprite2Unity.Editor
             m_Texture2D = new Texture2D(width, height, TextureFormat.RGBA32, false);
             m_Texture2D.wrapMode = TextureWrapMode.Clamp;
             m_Texture2D.filterMode = FilterMode.Point;
-            m_Texture2D.name = string.Format("{0}.Textures._{1}", Path.GetFileNameWithoutExtension(assetPath), m_Frames.Count);
+            m_Texture2D.name = string.Format("{0}.Textures._{1}", Path.GetFileNameWithoutExtension(assetPath), m_Frames.Count); // fixit - I think baking the asset name into textures and animations is breaking references if the asset name changes
 
             // Texture starts off blank
             m_Texture2D.SetPixels(0, 0, width, height, m_ClearPixels);
