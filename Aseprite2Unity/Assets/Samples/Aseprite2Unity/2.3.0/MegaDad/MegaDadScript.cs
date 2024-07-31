@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace Aseprite2Unity.Examples.MegaDad
@@ -6,25 +7,7 @@ namespace Aseprite2Unity.Examples.MegaDad
     // Simple script that animates our MegaDad sprite
     public class MegaDadScript : MonoBehaviour
     {
-        public AudioClip m_AudioLadder1;
-        public AudioClip m_AudioLadder2;
-
-        // Gravity/Acceleration is pixels-per-second-squared
-        private const float Gravity_pps2 = 360.0f;
-        private const float GroundPlane = 0.0f;
-        private const float TopPlane = 56.0f;
-
-        // Velocity is in pixels-per-second
-        private const float JumpBoost_pps = 196.0f;
-        private const float ClimbingSpeed_pps = 64.0f;
-
-        private Vector2 m_CurrentVelocity_pps;
-
-        private Animator m_Animator;
-        private SpriteRenderer m_SpriteRenderer;
-        private AudioSource m_AudioSource;
-
-        public enum PhysicalState
+        private enum PhysicalState
         {
             Invalid,
             OnGround,
@@ -32,12 +15,41 @@ namespace Aseprite2Unity.Examples.MegaDad
             OnLadder,
         }
 
+        public AudioClip m_AudioLadder1;
+        public AudioClip m_AudioLadder2;
+
+        [Tooltip("BoxCollider2D components on this game object will be represent the terrain colliders")]
+        public GameObject m_TerrainProvider;
+
+        [Tooltip("BoxCollider2D components on this game object will be represent the ladder colliders")]
+        public GameObject m_LaddersProvider;
+
+        // Gravity/Acceleration is pixels-per-second-squared
+        private const float Gravity_pps2 = 360.0f;
+
+        // Velocity is in pixels-per-second
+        private const float JumpBoost_pps = 196.0f;
+        private const float ClimbingSpeed_pps = 64.0f;
+        private const float HorizontalSpeed_pps = 82.0f;
+
+        private Vector2 m_CurrentVelocity_pps;
+
+        private Animator m_Animator;
+        private SpriteRenderer m_SpriteRenderer;
+        private AudioSource m_AudioSource;
+        private BoxCollider2D m_BoxCollider2D;
+
         private PhysicalState m_PhysicalState;
 
         // Input state that we gather every frame
         private int m_InputX;
         private int m_InputY;
         private bool m_InputJump;
+
+        private readonly List<Rect> m_TerrainRects = new List<Rect>();
+        private readonly List<Rect> m_LadderRects = new List<Rect>();
+
+        private Rect PlayerCollisionRect => new Rect(m_BoxCollider2D.bounds.min, m_BoxCollider2D.bounds.size);
 
         // Animation event - called from animation clip
         public void DoClimb1()
@@ -57,16 +69,41 @@ namespace Aseprite2Unity.Examples.MegaDad
             }
         }
 
-        private void Awake()
+        private void Start()
         {
-            m_Animator = GetComponentInChildren<Animator>();
+            m_Animator = GetComponent<Animator>();
             Assert.IsNotNull(m_Animator);
 
-            m_SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            m_SpriteRenderer = GetComponent<SpriteRenderer>();
             Assert.IsNotNull(m_SpriteRenderer);
 
-            m_AudioSource = GetComponentInChildren<AudioSource>();
+            m_AudioSource = GetComponent<AudioSource>();
             Assert.IsNotNull(m_AudioSource);
+
+            m_BoxCollider2D = GetComponent<BoxCollider2D>();
+            Assert.IsNotNull(m_BoxCollider2D);
+
+            // Get our terrain rectangles
+            if (m_TerrainProvider != null)
+            {
+                foreach (var terrainBox in m_TerrainProvider.GetComponentsInChildren<BoxCollider2D>())
+                {
+                    Vector2 pos = terrainBox.bounds.min;
+                    Vector2 size = terrainBox.bounds.size;
+                    m_TerrainRects.Add(new Rect(pos, size));
+                }
+            }
+
+            // Get our ladder rectangles
+            if (m_LaddersProvider != null)
+            {
+                foreach (var ladderBox in m_LaddersProvider.GetComponentsInChildren<BoxCollider2D>())
+                {
+                    Vector2 pos = (Vector2)ladderBox.gameObject.transform.position + ladderBox.offset;
+                    Vector2 size = ladderBox.size;
+                    m_LadderRects.Add(new Rect(pos, size));
+                }
+            }
 
             ChangePhysicalState(PhysicalState.OnGround);
         }
@@ -108,6 +145,42 @@ namespace Aseprite2Unity.Examples.MegaDad
             }
         }
 
+        private void OnDrawGizmosSelected()
+        {
+            foreach (var rect in m_TerrainRects)
+            {
+                DrawGizmoRect(rect, Color.red);
+            }
+
+            Gizmos.color = new Color(1.0f, 1.0f, 0, 0.25f);
+            foreach (var rect in m_LadderRects)
+            {
+                DrawGizmoRect(rect, Color.white);
+            }
+
+            if (m_BoxCollider2D != null)
+            {
+                DrawGizmoRect(PlayerCollisionRect, Color.yellow);
+            }
+        }
+
+        private void DrawGizmoRect(Rect rect, Color color)
+        {
+            Color alpha = new Color(color.a, color.g, color.b, color.a * 0.5f);
+            Gizmos.color = alpha;
+            Gizmos.DrawCube(rect.center, rect.size);
+
+            Gizmos.color = color;
+            var p0 = rect.position;
+            var p1 = p0 + (Vector2.up * rect.size.y);
+            var p2 = p1 + (Vector2.right * rect.size.x);
+            var p3 = p2 + (Vector2.down * rect.size.y);
+            Gizmos.DrawLine(p0, p1);
+            Gizmos.DrawLine(p1, p2);
+            Gizmos.DrawLine(p2, p3);
+            Gizmos.DrawLine(p3, p0);
+        }
+
         private void ChangePhysicalState(PhysicalState state)
         {
             if (state == m_PhysicalState)
@@ -137,6 +210,16 @@ namespace Aseprite2Unity.Examples.MegaDad
 
         private void UpdateOnGround()
         {
+            // fixit - plan for this state
+            // can move side-to-side
+            // can "fall"
+
+
+            MoveHorizontally();
+
+            // fixit - can move side to side without changing state
+            // fixit - can jump
+
             // We can jump while on the ground
             if (m_InputJump)
             {
@@ -147,11 +230,7 @@ namespace Aseprite2Unity.Examples.MegaDad
                 return;
             }
 
-            if (m_InputY > 0)
-            {
-                // Climb onto a ladder
-                ChangePhysicalState(PhysicalState.OnLadder);
-            }
+            // fixit - can climb ladders (check m_InputY)
         }
 
         private void UpdateInAir()
@@ -159,22 +238,18 @@ namespace Aseprite2Unity.Examples.MegaDad
             // Our velocity changes each frame due to gravity while we're in the air
             m_CurrentVelocity_pps.y -= Gravity_pps2 * Time.deltaTime;
 
-            // How much are we moving this frame?
+            // How much are we trying to fall this frame?
             float dy = m_CurrentVelocity_pps.y * Time.deltaTime;
-            var pos = gameObject.transform.position;
 
-            // Are we going to land back on the "ground"
-            if (pos.y + dy < GroundPlane)
-            {
-                gameObject.transform.position = new Vector3(pos.x, GroundPlane, pos.z);
+            // fixit - if grounded
+            //m_CurrentVelocity_pps.y = 0;
+            //ChangePhysicalState(PhysicalState.OnGround);
 
-                // We've hit the ground and we're done
-                ChangePhysicalState(PhysicalState.OnGround);
-            }
-            else
-            {
-                gameObject.transform.Translate(0, dy, 0);
-            }
+
+            // fixit - we also move sideways
+            MoveHorizontally();
+
+            // fixit - we can also grab a ladder
         }
 
         private void UpdateOnLadder()
@@ -185,22 +260,9 @@ namespace Aseprite2Unity.Examples.MegaDad
                 float dy = m_InputY * ClimbingSpeed_pps * Time.deltaTime;
                 var pos = gameObject.transform.position;
 
-                if (pos.y + dy > TopPlane)
-                {
-                    gameObject.transform.position = new Vector3(pos.x, TopPlane, pos.z);
-                }
-                else if (pos.y + dy < GroundPlane)
-                {
-                    gameObject.transform.position = new Vector3(pos.x, GroundPlane, pos.z);
-
-                    // We're on the ground and need to transition to another physical state
-                    ChangePhysicalState(PhysicalState.OnGround);
-                    return;
-                }
-                else
-                {
-                    gameObject.transform.Translate(0, dy, 0);
-                }
+                // fixit - move up/down
+                // fixit - collide with above
+                // fixit - if we touch ground (moving down) then we're on ground ChangePhysicalState(PhysicalState.OnGround);
             }
 
             // We can jump off the ladder
@@ -211,5 +273,14 @@ namespace Aseprite2Unity.Examples.MegaDad
                 return;
             }
         }
+
+        private void MoveHorizontally()
+        {
+            if (m_InputX != 0)
+            {
+                // fixit - boxes
+            }
+        }
+
     }
 }
