@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace Aseprite2Unity.Examples.MegaDad
+namespace Aseprite2Unity.Samples.MegaDad
 {
     // Simple script that animates our MegaDad sprite
     public class MegaDadScript : MonoBehaviour
@@ -18,12 +18,6 @@ namespace Aseprite2Unity.Examples.MegaDad
         public AudioClip m_AudioLadder1;
         public AudioClip m_AudioLadder2;
 
-        [Tooltip("BoxCollider2D components on this game object will be represent the terrain colliders")]
-        public GameObject m_TerrainProvider;
-
-        [Tooltip("BoxCollider2D components on this game object will be represent the ladder colliders")]
-        public GameObject m_LaddersProvider;
-
         // Gravity/Acceleration is pixels-per-second-squared
         private const float Gravity_pps2 = 360.0f;
 
@@ -37,7 +31,6 @@ namespace Aseprite2Unity.Examples.MegaDad
         private Animator m_Animator;
         private SpriteRenderer m_SpriteRenderer;
         private AudioSource m_AudioSource;
-        private BoxCollider2D m_BoxCollider2D;
 
         private PhysicalState m_PhysicalState;
 
@@ -45,11 +38,6 @@ namespace Aseprite2Unity.Examples.MegaDad
         private int m_InputX;
         private int m_InputY;
         private bool m_InputJump;
-
-        private readonly List<Rect> m_TerrainRects = new List<Rect>();
-        private readonly List<Rect> m_LadderRects = new List<Rect>();
-
-        private Rect PlayerCollisionRect => new Rect(m_BoxCollider2D.bounds.min, m_BoxCollider2D.bounds.size);
 
         // Animation event - called from animation clip
         public void DoClimb1()
@@ -79,31 +67,6 @@ namespace Aseprite2Unity.Examples.MegaDad
 
             m_AudioSource = GetComponent<AudioSource>();
             Assert.IsNotNull(m_AudioSource);
-
-            m_BoxCollider2D = GetComponent<BoxCollider2D>();
-            Assert.IsNotNull(m_BoxCollider2D);
-
-            // Get our terrain rectangles
-            if (m_TerrainProvider != null)
-            {
-                foreach (var terrainBox in m_TerrainProvider.GetComponentsInChildren<BoxCollider2D>())
-                {
-                    Vector2 pos = terrainBox.bounds.min;
-                    Vector2 size = terrainBox.bounds.size;
-                    m_TerrainRects.Add(new Rect(pos, size));
-                }
-            }
-
-            // Get our ladder rectangles
-            if (m_LaddersProvider != null)
-            {
-                foreach (var ladderBox in m_LaddersProvider.GetComponentsInChildren<BoxCollider2D>())
-                {
-                    Vector2 pos = (Vector2)ladderBox.gameObject.transform.position + ladderBox.offset;
-                    Vector2 size = ladderBox.size;
-                    m_LadderRects.Add(new Rect(pos, size));
-                }
-            }
 
             ChangePhysicalState(PhysicalState.OnGround);
         }
@@ -143,42 +106,6 @@ namespace Aseprite2Unity.Examples.MegaDad
                     UpdateOnLadder();
                     break;
             }
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            foreach (var rect in m_TerrainRects)
-            {
-                DrawGizmoRect(rect, Color.red);
-            }
-
-            Gizmos.color = new Color(1.0f, 1.0f, 0, 0.25f);
-            foreach (var rect in m_LadderRects)
-            {
-                DrawGizmoRect(rect, Color.white);
-            }
-
-            if (m_BoxCollider2D != null)
-            {
-                DrawGizmoRect(PlayerCollisionRect, Color.yellow);
-            }
-        }
-
-        private void DrawGizmoRect(Rect rect, Color color)
-        {
-            Color alpha = new Color(color.a, color.g, color.b, color.a * 0.5f);
-            Gizmos.color = alpha;
-            Gizmos.DrawCube(rect.center, rect.size);
-
-            Gizmos.color = color;
-            var p0 = rect.position;
-            var p1 = p0 + (Vector2.up * rect.size.y);
-            var p2 = p1 + (Vector2.right * rect.size.x);
-            var p3 = p2 + (Vector2.down * rect.size.y);
-            Gizmos.DrawLine(p0, p1);
-            Gizmos.DrawLine(p1, p2);
-            Gizmos.DrawLine(p2, p3);
-            Gizmos.DrawLine(p3, p0);
         }
 
         private void ChangePhysicalState(PhysicalState state)

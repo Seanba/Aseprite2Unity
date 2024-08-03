@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4328519366722238184}
   - component: {fileID: 6104996580625136047}
+  - component: {fileID: 2659910650920111473}
   - component: {fileID: -3938831481916799788}
   - component: {fileID: 6696373569894155047}
   m_Layer: 2
@@ -47,6 +48,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_AudioLadder1: {fileID: 8300000, guid: 7ae1e22348f33af4a9ccd13ae1d6c101, type: 3}
   m_AudioLadder2: {fileID: 8300000, guid: ea5e5456b1682384f9e69597efbf1819, type: 3}
+--- !u!114 &2659910650920111473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3288147003639597545}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0449824d70bf06438c16dc004e54a1f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_TerrainProvider: {fileID: 0}
+  m_LaddersProvider: {fileID: 0}
 --- !u!82 &-3938831481916799788
 AudioSource:
   m_ObjectHideFlags: 0
