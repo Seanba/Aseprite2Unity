@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace Aseprite2Unity.Samples.MegaDad
@@ -26,11 +25,13 @@ namespace Aseprite2Unity.Samples.MegaDad
         private const float ClimbingSpeed_pps = 64.0f;
         private const float HorizontalSpeed_pps = 82.0f;
 
-        private Vector2 m_CurrentVelocity_pps;
+        // Because of gravity our vertical speed changes over time
+        private float m_CurrentVerticalSpeed;
 
         private Animator m_Animator;
         private SpriteRenderer m_SpriteRenderer;
         private AudioSource m_AudioSource;
+        private BoxPhysics m_PlayerBoxPhysics;
 
         private PhysicalState m_PhysicalState;
 
@@ -67,6 +68,9 @@ namespace Aseprite2Unity.Samples.MegaDad
 
             m_AudioSource = GetComponent<AudioSource>();
             Assert.IsNotNull(m_AudioSource);
+
+            m_PlayerBoxPhysics = GetComponent<BoxPhysics>();
+            Assert.IsNotNull(m_PlayerBoxPhysics);
 
             ChangePhysicalState(PhysicalState.OnGround);
         }
@@ -119,6 +123,7 @@ namespace Aseprite2Unity.Samples.MegaDad
 
             if (state == PhysicalState.OnGround)
             {
+                m_CurrentVerticalSpeed = 0;
                 m_Animator.SetTrigger("IsOnGround");
             }
             else if (state == PhysicalState.InAir)
@@ -127,6 +132,7 @@ namespace Aseprite2Unity.Samples.MegaDad
             }
             else if (state == PhysicalState.OnLadder)
             {
+                m_CurrentVerticalSpeed = 0;
                 m_Animator.SetTrigger("IsOnLadder");
             }
             else
@@ -137,15 +143,17 @@ namespace Aseprite2Unity.Samples.MegaDad
 
         private void UpdateOnGround()
         {
-            // fixit - plan for this state
-            // can move side-to-side
-            // can "fall"
+            // Is there ground ground still beneath us? If we can move a little bit down then the answer is no.
+            if (m_PlayerBoxPhysics.CanMove(0, -0.25f))
+            {
+                // Start falling
+                m_CurrentVerticalSpeed = 0;
+                ChangePhysicalState(PhysicalState.InAir);
+                return;
+            }
 
-
+            // Are we moving left/right?
             MoveHorizontally();
-
-            // fixit - can move side to side without changing state
-            // fixit - can jump
 
             // We can jump while on the ground
             if (m_InputJump)
@@ -153,30 +161,44 @@ namespace Aseprite2Unity.Samples.MegaDad
                 ChangePhysicalState(PhysicalState.InAir);
 
                 // We get a boost up when we jump
-                m_CurrentVelocity_pps.y = JumpBoost_pps;
+                m_CurrentVerticalSpeed = JumpBoost_pps;
                 return;
             }
 
-            // fixit - can climb ladders (check m_InputY)
+            if (CanClimbLadder())
+            {
+                ChangePhysicalState(PhysicalState.OnLadder);
+                return;
+            }
         }
 
         private void UpdateInAir()
         {
             // Our velocity changes each frame due to gravity while we're in the air
-            m_CurrentVelocity_pps.y -= Gravity_pps2 * Time.deltaTime;
+            m_CurrentVerticalSpeed -= Gravity_pps2 * Time.deltaTime;
 
             // How much are we trying to fall this frame?
-            float dy = m_CurrentVelocity_pps.y * Time.deltaTime;
+            float dy = m_CurrentVerticalSpeed * Time.deltaTime;
 
-            // fixit - if grounded
-            //m_CurrentVelocity_pps.y = 0;
-            //ChangePhysicalState(PhysicalState.OnGround);
+            if (!m_PlayerBoxPhysics.AttemptMove(0, dy))
+            {
+                // We hit something either moving up (bumping head, so start falling) or moving down (touching ground)
+                m_CurrentVerticalSpeed = 0;
 
+                if (dy < 0)
+                {
+                    // We couldn't move down the whole distance so we must be touching ground
+                    ChangePhysicalState(PhysicalState.OnGround);
+                    return;
+                }
+            }
 
-            // fixit - we also move sideways
             MoveHorizontally();
 
-            // fixit - we can also grab a ladder
+            if (CanClimbLadder())
+            {
+                ChangePhysicalState(PhysicalState.OnLadder);
+            }
         }
 
         private void UpdateOnLadder()
@@ -195,7 +217,7 @@ namespace Aseprite2Unity.Samples.MegaDad
             // We can jump off the ladder
             if (m_InputJump)
             {
-                m_CurrentVelocity_pps.y = 0;
+                m_CurrentVerticalSpeed = 0;
                 ChangePhysicalState(PhysicalState.InAir);
                 return;
             }
@@ -205,9 +227,20 @@ namespace Aseprite2Unity.Samples.MegaDad
         {
             if (m_InputX != 0)
             {
-                // fixit - boxes
+                float dx = m_InputX * Time.deltaTime * HorizontalSpeed_pps;
+                m_PlayerBoxPhysics.AttemptMove(dx, 0);
             }
         }
 
+        private bool CanClimbLadder()
+        {
+            if (m_InputY != 0)
+            {
+                // Does our position overlap with a ladder?
+                // fixit - we need to snap to ladder, that's the job of BoxPhysics
+            }
+
+            return false;
+        }
     }
 }

@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -9,6 +8,9 @@ namespace Aseprite2Unity.Samples.MegaDad
     // The built-in physics with Unity doesn't work well (IMHO) with NES-style games
     public class BoxPhysics : MonoBehaviour
     {
+        // We have to avoid in the smallest of overlaps when resting one object next to another
+        private const float CollisionBias = 1.0f / 256.0f;
+
         [Tooltip("BoxCollider2D components on this game object will be represent the terrain colliders")]
         public GameObject m_TerrainProvider;
 
@@ -20,7 +22,68 @@ namespace Aseprite2Unity.Samples.MegaDad
         private readonly List<Rect> m_TerrainRects = new List<Rect>();
         private readonly List<Rect> m_LadderRects = new List<Rect>();
 
-        private Rect PlayerCollisionRect => new Rect(m_PlayerBoxCollider2D.bounds.min, m_PlayerBoxCollider2D.bounds.size);
+        private Rect PlayerCollisionBox => new Rect(m_PlayerBoxCollider2D.bounds.min, m_PlayerBoxCollider2D.bounds.size);
+
+        public bool CanMove(float dx, float dy)
+        {
+            // Test that moving in the dx and dy directions will not make us collide with terrain
+            var playerBox = PlayerCollisionBox;
+            
+            if (dx > 0)
+            {
+                playerBox.xMax += dx;
+            }
+            else if (dx < 0)
+            {
+                playerBox.xMin += dx;
+            }
+
+            if (dy > 0)
+            {
+                playerBox.yMax += dy;
+            }
+            else if (dy < 0)
+            {
+                playerBox.yMin += dy;
+            }
+
+            foreach (var terrainBox in m_TerrainRects)
+            {
+                if (terrainBox.Overlaps(playerBox))
+                {
+                    return false;
+                }
+            }
+
+            // We won't collide with terrain
+            return true;
+        }
+
+        // Returns false if we couldn't move the whole distance given
+        public bool AttemptMove(float dx, float dy)
+        {
+            bool moved = true;
+
+            if (dx < 0)
+            {
+                moved = moved && MoveLeft(dx);
+            }
+            else if (dx > 0)
+            {
+                moved = moved && MoveRight(dx);
+            }
+
+            if (dy < 0)
+            {
+                moved = moved && MoveDown(dy);
+            }
+            else if (dy > 0)
+            {
+                moved = moved && MoveUp(dy);
+            }
+
+            return moved;
+        }
 
         private void Start()
         {
@@ -52,20 +115,20 @@ namespace Aseprite2Unity.Samples.MegaDad
 
         private void OnDrawGizmosSelected()
         {
-            foreach (var rect in m_TerrainRects)
+            foreach (var box in m_TerrainRects)
             {
-                DrawGizmoRect(rect, Color.red);
+                DrawGizmoRect(box, Color.red);
             }
 
             Gizmos.color = new Color(1.0f, 1.0f, 0, 0.25f);
-            foreach (var rect in m_LadderRects)
+            foreach (var box in m_LadderRects)
             {
-                DrawGizmoRect(rect, Color.white);
+                DrawGizmoRect(box, Color.white);
             }
 
             if (m_PlayerBoxCollider2D != null)
             {
-                DrawGizmoRect(PlayerCollisionRect, Color.yellow);
+                DrawGizmoRect(PlayerCollisionBox, Color.yellow);
             }
         }
 
@@ -86,5 +149,156 @@ namespace Aseprite2Unity.Samples.MegaDad
             Gizmos.DrawLine(p3, p0);
         }
 
+        // Given a colliion rectangle we want to reposition the player
+        private void RepositionPlayer(Rect newPlayerBox)
+        {
+            Rect oldPlayerBox = PlayerCollisionBox;
+
+            // Moving the player around should never change their collision width or height
+            Assert.IsTrue(Mathf.Approximately(oldPlayerBox.width, newPlayerBox.width));
+            Assert.IsTrue(Mathf.Approximately(oldPlayerBox.height, newPlayerBox.height));
+
+
+            m_PlayerBoxCollider2D.gameObject.transform.Translate(newPlayerBox.position - oldPlayerBox.position);
+
+            // We need to sync the collider bounds every time we move the player since we are basing collision testing off of collider bounds
+            Physics2D.SyncTransforms();
+        }
+
+        private bool MoveRight(float dx)
+        {
+            Assert.IsTrue(dx > 0);
+
+            bool fullyMoved = true;
+
+            var oldPlayerRect = PlayerCollisionBox;
+            var playerRect = oldPlayerRect;
+            var lockedWidth = playerRect.width;
+
+            // Do we overlap with terrain rectangles as we move to the right?
+            // And if so what xMax position do we need to be to stay just to the left?
+            playerRect.xMax += dx;
+
+            foreach (var terrainBox in m_TerrainRects)
+            {
+                if (terrainBox.Overlaps(playerRect))
+                {
+                    playerRect.xMax = terrainBox.xMin - CollisionBias;
+                    playerRect.xMin = playerRect.xMax - lockedWidth;
+                    fullyMoved = false;
+                }
+            }
+
+            if (playerRect != oldPlayerRect)
+            {
+                // Make sure our width remains the same even though we changed our xMax
+                playerRect.xMin = playerRect.xMax - lockedWidth;
+                RepositionPlayer(playerRect);
+            }
+
+            return fullyMoved;
+        }
+
+        private bool MoveLeft(float dx)
+        {
+            Assert.IsTrue(dx < 0);
+
+            bool fullyMoved = true;
+
+            var oldPlayerRect = PlayerCollisionBox;
+            var playerRect = oldPlayerRect;
+            var lockedWidth = playerRect.width;
+
+            // Do we overlap with terrain rectangles as we move to the left?
+            // And if so what xMin position do we need to be to stay just to the right?
+            playerRect.xMin += dx;
+
+            foreach (var terrainBox in m_TerrainRects)
+            {
+                if (terrainBox.Overlaps(playerRect))
+                {
+                    playerRect.xMin = terrainBox.xMax + CollisionBias;
+                    playerRect.xMax = playerRect.xMin + lockedWidth;
+                    fullyMoved = false;
+                }
+            }
+
+            if (playerRect != oldPlayerRect)
+            {
+                // Make sure our width remains the same even though we changed our xMin
+                playerRect.xMax = playerRect.xMin + lockedWidth;
+                RepositionPlayer(playerRect);
+            }
+
+            return fullyMoved;
+        }
+
+        private bool MoveUp(float dy)
+        {
+            Assert.IsTrue(dy > 0);
+
+            bool fullyMoved = true;
+
+            var oldPlayerRect = PlayerCollisionBox;
+            var playerRect = oldPlayerRect;
+            var lockedHeight = playerRect.height;
+
+            // Do we overlap with terrain rectangles as we move up?
+            // And if so what yMax position do we need to remain just below?
+            playerRect.yMax += dy;
+
+            foreach (var terrainBox in m_TerrainRects)
+            {
+                if (terrainBox.Overlaps(playerRect))
+                {
+                    playerRect.yMax = terrainBox.yMin - CollisionBias;
+                    playerRect.yMin = playerRect.yMax - lockedHeight;
+                    fullyMoved = false;
+                }
+            }
+
+            if (playerRect != oldPlayerRect)
+            {
+                // Make sure our height remains the same even though we changed our yMax
+                playerRect.yMin = playerRect.yMax - lockedHeight;
+                RepositionPlayer(playerRect);
+            }
+
+            return fullyMoved;
+        }
+
+        private bool MoveDown(float dy)
+        {
+            Assert.IsTrue(dy < 0);
+
+            bool fullyMoved = true;
+
+            var oldPlayerRect = PlayerCollisionBox;
+            var playerRect = oldPlayerRect;
+            var lockedHeight = playerRect.height;
+
+            // Do we overlap with terrain rectangles as we move down?
+            // And if so what yMin position do we need to be on top?
+            playerRect.yMin += dy;
+
+            foreach (var terrainBox in m_TerrainRects)
+            {
+                if (terrainBox.Overlaps(playerRect))
+                {
+                    playerRect.yMin = terrainBox.yMax + CollisionBias;
+                    playerRect.yMax = playerRect.yMin + lockedHeight;
+                    fullyMoved = false;
+                }
+            }
+
+            if (playerRect != oldPlayerRect)
+            {
+                // Make sure our height remains the same even though we changed our yMin
+                playerRect.yMax = playerRect.yMin + lockedHeight;
+                RepositionPlayer(playerRect);
+            }
+
+            return fullyMoved;
+        }
     }
 }
