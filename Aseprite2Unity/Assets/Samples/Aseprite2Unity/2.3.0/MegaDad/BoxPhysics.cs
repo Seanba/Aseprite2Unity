@@ -85,6 +85,26 @@ namespace Aseprite2Unity.Samples.MegaDad
             return moved;
         }
 
+        // Returns true if our position changed to the center of a nearby ladder
+        public bool AttemptSnapToLadder()
+        {
+            Vector2 ourPosition = PlayerCollisionBox.center;
+
+            foreach (var ladderBox in m_LadderRects)
+            {
+                if (ladderBox.Contains(ourPosition))
+                {
+                    Vector2 translate;
+                    translate.x = ladderBox.center.x - ourPosition.x;
+                    translate.y = 0;
+                    TranslatePlayer(translate);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void Start()
         {
             m_PlayerBoxCollider2D = GetComponent<BoxCollider2D>();
@@ -158,8 +178,12 @@ namespace Aseprite2Unity.Samples.MegaDad
             Assert.IsTrue(Mathf.Approximately(oldPlayerBox.width, newPlayerBox.width));
             Assert.IsTrue(Mathf.Approximately(oldPlayerBox.height, newPlayerBox.height));
 
+            TranslatePlayer(newPlayerBox.position - oldPlayerBox.position);
+        }
 
-            m_PlayerBoxCollider2D.gameObject.transform.Translate(newPlayerBox.position - oldPlayerBox.position);
+        private void TranslatePlayer(Vector2 dv)
+        {
+            m_PlayerBoxCollider2D.gameObject.transform.Translate(dv);
 
             // We need to sync the collider bounds every time we move the player since we are basing collision testing off of collider bounds
             Physics2D.SyncTransforms();

@@ -207,11 +207,17 @@ namespace Aseprite2Unity.Samples.MegaDad
             {
                 // Move up or down the ladder, keeping within the ground and top planes
                 float dy = m_InputY * ClimbingSpeed_pps * Time.deltaTime;
-                var pos = gameObject.transform.position;
 
-                // fixit - move up/down
-                // fixit - collide with above
-                // fixit - if we touch ground (moving down) then we're on ground ChangePhysicalState(PhysicalState.OnGround);
+                if (!m_PlayerBoxPhysics.AttemptMove(0, dy))
+                {
+                    // If we bumped our head that's okay
+                    // But if we touched ground then change our state
+                    if (dy < 0)
+                    {
+                        ChangePhysicalState(PhysicalState.OnGround);
+                        return;
+                    }
+                }
             }
 
             // We can jump off the ladder
@@ -234,10 +240,9 @@ namespace Aseprite2Unity.Samples.MegaDad
 
         private bool CanClimbLadder()
         {
-            if (m_InputY != 0)
+            if (m_InputY > 0)
             {
-                // Does our position overlap with a ladder?
-                // fixit - we need to snap to ladder, that's the job of BoxPhysics
+                return m_PlayerBoxPhysics.AttemptSnapToLadder();
             }
 
             return false;
