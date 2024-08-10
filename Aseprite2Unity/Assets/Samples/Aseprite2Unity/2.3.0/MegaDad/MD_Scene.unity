@@ -299,6 +299,16 @@ PrefabInstance:
       propertyPath: m_TerrainProvider
       value: 
       objectReference: {fileID: 2100559815}
+    - target: {fileID: 2845755625354823488, guid: 17d6ed918dd1b554ca25c7ea7bb07cbd,
+        type: 3}
+      propertyPath: m_LaddersProvider
+      value: 
+      objectReference: {fileID: 392748837}
+    - target: {fileID: 2845755625354823488, guid: 17d6ed918dd1b554ca25c7ea7bb07cbd,
+        type: 3}
+      propertyPath: m_TerrainProvider
+      value: 
+      objectReference: {fileID: 2100559815}
     - target: {fileID: 8295377163035423927, guid: 17d6ed918dd1b554ca25c7ea7bb07cbd,
         type: 3}
       propertyPath: m_LaddersProvider

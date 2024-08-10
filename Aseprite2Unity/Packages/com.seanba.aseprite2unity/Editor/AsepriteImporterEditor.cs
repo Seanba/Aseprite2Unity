@@ -98,7 +98,6 @@ namespace Aseprite2Unity.Editor
                         "Chose location for Animation Controller",
                         Path.GetDirectoryName(importer.assetPath));
 
-                    // fixit - what if animation clips have the same name? Do we protect against duplicates like that?
                     if (!string.IsNullOrEmpty(animationControllerAssetPath))
                     {
                         var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(animationControllerAssetPath);
