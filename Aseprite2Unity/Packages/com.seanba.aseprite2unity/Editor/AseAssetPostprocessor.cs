@@ -12,6 +12,11 @@ namespace Aseprite2Unity.Editor
 
         private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
+            if (Application.isPlaying)
+            {
+                return;
+            }
+
             var assetsToSerialize = new HashSet<string>();
 
             // Unity has an odd bug with animation controllers that requires them to be dirtied and force-serialized

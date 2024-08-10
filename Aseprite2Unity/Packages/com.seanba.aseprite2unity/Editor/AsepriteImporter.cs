@@ -38,7 +38,7 @@ namespace Aseprite2Unity.Editor
         private AseFrameTagsChunk m_AseFrameTagsChunk;
         private Vector2? m_Pivot;
 
-        private UniqueNameifier m_UniqueNameifier = new UniqueNameifier();
+        private UniqueNameifier m_UniqueNameifierAnimations = new UniqueNameifier();
 
         [SerializeField]
         private List<string> m_Errors = new List<string>();
@@ -86,9 +86,16 @@ namespace Aseprite2Unity.Editor
                 m_GameObject = new GameObject();
             }
 
-            m_GameObject.name = Path.GetFileNameWithoutExtension(assetPath);
             m_Context.AddObjectToAsset("_main", m_GameObject, icon);
             m_Context.SetMainObject(m_GameObject);
+
+            if (m_InstantiatedPrefab != null)
+            {
+                // We want this asset to be reimported when the prefab changes
+                var prefabPath = AssetDatabase.GetAssetPath(m_InstantiatedPrefab);
+                m_Context.DependsOnArtifact(prefabPath);
+                m_Context.DependsOnSourceAsset(prefabPath);
+            }
         }
 
         public void EndFileVisit(AseFile file)
@@ -123,7 +130,7 @@ namespace Aseprite2Unity.Editor
             m_Sprites.Clear();
             m_Clips.Clear();
             m_AseFrameTagsChunk = null;
-            m_UniqueNameifier.Clear();
+            m_UniqueNameifierAnimations.Clear();
             m_GameObject = null;
         }
 
@@ -134,7 +141,6 @@ namespace Aseprite2Unity.Editor
             m_Texture2D = new Texture2D(width, height, TextureFormat.RGBA32, false);
             m_Texture2D.wrapMode = TextureWrapMode.Clamp;
             m_Texture2D.filterMode = FilterMode.Point;
-            m_Texture2D.name = string.Format("{0}.Textures._{1}", Path.GetFileNameWithoutExtension(assetPath), m_Frames.Count);
 
             // Texture starts off blank
             m_Texture2D.SetPixels(0, 0, width, height, m_ClearPixels);
@@ -146,17 +152,25 @@ namespace Aseprite2Unity.Editor
         public void EndFrameVisit(AseFrame frame)
         {
             // We should have everything we need to make a sprite and add it to our asset
+            var assetName = Path.GetFileNameWithoutExtension(assetPath);
+            var textureId = $"Textures._{m_Frames.Count - 1}";
+            var textureName = $"{assetName}.{textureId}";
 
             // The texture should be ready to be added to our asset
+            m_Texture2D.name = textureName;
             m_Texture2D.Apply();
-            m_Context.AddObjectToAsset(m_Texture2D.name, m_Texture2D);
+            m_Context.AddObjectToAsset(textureId, m_Texture2D);
 
             // Make a sprite out of the texture
             var pivot = m_Pivot ?? new Vector2(0.5f, 0.5f);
             var sprite = Sprite.Create(m_Texture2D, new Rect(0, 0, m_Texture2D.width, m_Texture2D.height), pivot, m_PixelsPerUnit);
-            sprite.name = string.Format("{0}.Sprites._{1}", Path.GetFileNameWithoutExtension(assetPath), m_Sprites.Count);
             m_Sprites.Add(sprite);
-            m_Context.AddObjectToAsset(sprite.name, sprite);
+
+            var spriteId = $"Sprites._{m_Sprites.Count - 1}";
+            var spriteName =  $"{assetName}.{spriteId}";
+
+            sprite.name = spriteName;
+            m_Context.AddObjectToAsset(spriteId, sprite);
         }
 
         public void VisitCelChunk(AseCelChunk cel)
@@ -398,8 +412,7 @@ namespace Aseprite2Unity.Editor
                 foreach (var entry in m_AseFrameTagsChunk.Entries)
                 {
                     var animIndices = Enumerable.Range(entry.FromFrame, entry.ToFrame - entry.FromFrame + 1).ToList();
-                    string animName = string.Format("{0}.Animations.{1}", Path.GetFileNameWithoutExtension(assetPath), entry.Name);
-                    MakeAnimationClip(animName, !entry.IsOneShot, animIndices);
+                    MakeAnimationClip(entry.Name, !entry.IsOneShot, animIndices);
 
                     // Remove the indices from the pool of animation frames
                     frameIndices.RemoveAll(i => i >= animIndices.First() && i <= animIndices.Last());
@@ -409,15 +422,19 @@ namespace Aseprite2Unity.Editor
             if (frameIndices.Count > 0)
             {
                 // Make an animation out of any left over (untagged) frames
-                string untaggedName = string.Format("{0}.Animations.Untagged", Path.GetFileNameWithoutExtension(assetPath));
-                MakeAnimationClip(untaggedName, true, frameIndices);
+                MakeAnimationClip("Untagged", true, frameIndices);
             }
         }
 
-        private void MakeAnimationClip(string name, bool isLooping, List<int> frameIndices)
+        private void MakeAnimationClip(string animationName, bool isLooping, List<int> frameIndices)
         {
+            animationName = m_UniqueNameifierAnimations.MakeUniqueName(animationName);
+            var assetName = Path.GetFileNameWithoutExtension(assetPath);
+            var clipName = $"{assetName}.Animations.{animationName}";
+            var clipId = $"Animations.{animationName}";
+
             var clip = new AnimationClip();
-            clip.name = m_UniqueNameifier.MakeUniqueName(name);
+            clip.name = clipName;
             clip.frameRate = m_FrameRate;
 
             // Black magic for creating a sprite animation curve
@@ -484,7 +501,7 @@ namespace Aseprite2Unity.Editor
                 AnimationUtility.SetAnimationEvents(clip, animationEvents.ToArray());
             }
 
-            m_Context.AddObjectToAsset(clip.name, clip);
+            m_Context.AddObjectToAsset(clipId, clip);
             m_Clips.Add(clip);
         }
     }

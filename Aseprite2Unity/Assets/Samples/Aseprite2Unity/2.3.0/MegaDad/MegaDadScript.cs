@@ -1,36 +1,37 @@
 ﻿using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace Aseprite2Unity.Examples.MegaDad
+namespace Aseprite2Unity.Samples.MegaDad
 {
     // Simple script that animates our MegaDad sprite
     public class MegaDadScript : MonoBehaviour
     {
-        public AudioClip m_AudioLadder1;
-        public AudioClip m_AudioLadder2;
-
-        // Gravity/Acceleration is pixels-per-second-squared
-        private const float Gravity_pps2 = 360.0f;
-        private const float GroundPlane = 0.0f;
-        private const float TopPlane = 56.0f;
-
-        // Velocity is in pixels-per-second
-        private const float JumpBoost_pps = 196.0f;
-        private const float ClimbingSpeed_pps = 64.0f;
-
-        private Vector2 m_CurrentVelocity_pps;
-
-        private Animator m_Animator;
-        private SpriteRenderer m_SpriteRenderer;
-        private AudioSource m_AudioSource;
-
-        public enum PhysicalState
+        private enum PhysicalState
         {
             Invalid,
             OnGround,
             InAir,
             OnLadder,
         }
+
+        public AudioClip m_AudioLadder1;
+        public AudioClip m_AudioLadder2;
+
+        // Gravity/Acceleration is pixels-per-second-squared
+        private const float Gravity_pps2 = 360.0f;
+
+        // Velocity is in pixels-per-second
+        private const float JumpBoost_pps = 196.0f;
+        private const float ClimbingSpeed_pps = 64.0f;
+        private const float HorizontalSpeed_pps = 82.0f;
+
+        // Because of gravity our vertical speed changes over time
+        private float m_CurrentVerticalSpeed;
+
+        private Animator m_Animator;
+        private SpriteRenderer m_SpriteRenderer;
+        private AudioSource m_AudioSource;
+        private BoxPhysics m_PlayerBoxPhysics;
 
         private PhysicalState m_PhysicalState;
 
@@ -57,16 +58,19 @@ namespace Aseprite2Unity.Examples.MegaDad
             }
         }
 
-        private void Awake()
+        private void Start()
         {
-            m_Animator = GetComponentInChildren<Animator>();
+            m_Animator = GetComponent<Animator>();
             Assert.IsNotNull(m_Animator);
 
-            m_SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            m_SpriteRenderer = GetComponent<SpriteRenderer>();
             Assert.IsNotNull(m_SpriteRenderer);
 
-            m_AudioSource = GetComponentInChildren<AudioSource>();
+            m_AudioSource = GetComponent<AudioSource>();
             Assert.IsNotNull(m_AudioSource);
+
+            m_PlayerBoxPhysics = GetComponent<BoxPhysics>();
+            Assert.IsNotNull(m_PlayerBoxPhysics);
 
             ChangePhysicalState(PhysicalState.OnGround);
         }
@@ -119,6 +123,7 @@ namespace Aseprite2Unity.Examples.MegaDad
 
             if (state == PhysicalState.OnGround)
             {
+                m_CurrentVerticalSpeed = 0;
                 m_Animator.SetTrigger("IsOnGround");
             }
             else if (state == PhysicalState.InAir)
@@ -127,6 +132,7 @@ namespace Aseprite2Unity.Examples.MegaDad
             }
             else if (state == PhysicalState.OnLadder)
             {
+                m_CurrentVerticalSpeed = 0;
                 m_Animator.SetTrigger("IsOnLadder");
             }
             else
@@ -137,43 +143,61 @@ namespace Aseprite2Unity.Examples.MegaDad
 
         private void UpdateOnGround()
         {
+            // Is there ground ground still beneath us? If we can move a little bit down then the answer is no.
+            if (m_PlayerBoxPhysics.CanMove(0, -0.25f))
+            {
+                // Start falling
+                m_CurrentVerticalSpeed = 0;
+                ChangePhysicalState(PhysicalState.InAir);
+                return;
+            }
+
+            // Are we moving left/right?
+            MoveHorizontally();
+
             // We can jump while on the ground
             if (m_InputJump)
             {
                 ChangePhysicalState(PhysicalState.InAir);
 
                 // We get a boost up when we jump
-                m_CurrentVelocity_pps.y = JumpBoost_pps;
+                m_CurrentVerticalSpeed = JumpBoost_pps;
                 return;
             }
 
-            if (m_InputY > 0)
+            if (CanClimbLadder())
             {
-                // Climb onto a ladder
                 ChangePhysicalState(PhysicalState.OnLadder);
+                return;
             }
         }
 
         private void UpdateInAir()
         {
             // Our velocity changes each frame due to gravity while we're in the air
-            m_CurrentVelocity_pps.y -= Gravity_pps2 * Time.deltaTime;
+            m_CurrentVerticalSpeed -= Gravity_pps2 * Time.deltaTime;
 
-            // How much are we moving this frame?
-            float dy = m_CurrentVelocity_pps.y * Time.deltaTime;
-            var pos = gameObject.transform.position;
+            // How much are we trying to fall this frame?
+            float dy = m_CurrentVerticalSpeed * Time.deltaTime;
 
-            // Are we going to land back on the "ground"
-            if (pos.y + dy < GroundPlane)
+            if (!m_PlayerBoxPhysics.AttemptMove(0, dy))
             {
-                gameObject.transform.position = new Vector3(pos.x, GroundPlane, pos.z);
+                // We hit something either moving up (bumping head, so start falling) or moving down (touching ground)
+                m_CurrentVerticalSpeed = 0;
 
-                // We've hit the ground and we're done
-                ChangePhysicalState(PhysicalState.OnGround);
+                if (dy < 0)
+                {
+                    // We couldn't move down the whole distance so we must be touching ground
+                    ChangePhysicalState(PhysicalState.OnGround);
+                    return;
+                }
             }
-            else
+
+            MoveHorizontally();
+
+            if (CanClimbLadder())
             {
-                gameObject.transform.Translate(0, dy, 0);
+                ChangePhysicalState(PhysicalState.OnLadder);
             }
         }
 
@@ -183,33 +207,45 @@ namespace Aseprite2Unity.Examples.MegaDad
             {
                 // Move up or down the ladder, keeping within the ground and top planes
                 float dy = m_InputY * ClimbingSpeed_pps * Time.deltaTime;
-                var pos = gameObject.transform.position;
 
-                if (pos.y + dy > TopPlane)
+                if (!m_PlayerBoxPhysics.AttemptMove(0, dy))
                 {
-                    gameObject.transform.position = new Vector3(pos.x, TopPlane, pos.z);
-                }
-                else if (pos.y + dy < GroundPlane)
-                {
-                    gameObject.transform.position = new Vector3(pos.x, GroundPlane, pos.z);
-
-                    // We're on the ground and need to transition to another physical state
-                    ChangePhysicalState(PhysicalState.OnGround);
-                    return;
-                }
-                else
-                {
-                    gameObject.transform.Translate(0, dy, 0);
+                    // If we bumped our head that's okay
+                    // But if we touched ground then change our state
+                    if (dy < 0)
+                    {
+                        ChangePhysicalState(PhysicalState.OnGround);
+                        return;
+                    }
                 }
             }
 
             // We can jump off the ladder
             if (m_InputJump)
             {
-                m_CurrentVelocity_pps.y = 0;
+                m_CurrentVerticalSpeed = 0;
                 ChangePhysicalState(PhysicalState.InAir);
                 return;
             }
+        }
+
+        private void MoveHorizontally()
+        {
+            if (m_InputX != 0)
+            {
+                float dx = m_InputX * Time.deltaTime * HorizontalSpeed_pps;
+                m_PlayerBoxPhysics.AttemptMove(dx, 0);
+            }
+        }
+
+        private bool CanClimbLadder()
+        {
+            if (m_InputY > 0)
+            {
+                return m_PlayerBoxPhysics.AttemptSnapToLadder();
+            }
+
+            return false;
         }
     }
 }
