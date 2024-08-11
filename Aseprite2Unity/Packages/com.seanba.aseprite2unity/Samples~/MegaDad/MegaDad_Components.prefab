@@ -10,10 +10,11 @@ GameObject:
   m_Component:
   - component: {fileID: 4328519366722238184}
   - component: {fileID: 6104996580625136047}
-  - component: {fileID: 6967468186857048551}
+  - component: {fileID: 2659910650920111473}
   - component: {fileID: -3938831481916799788}
-  m_Layer: 0
-  m_Name: MegaDadPrefab
+  - component: {fileID: 6696373569894155047}
+  m_Layer: 2
+  m_Name: MegaDad_Components
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -42,30 +43,25 @@ MonoBehaviour:
   m_GameObject: {fileID: 3288147003639597545}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2ceddaeda0f9ee34e85e6c576eced055, type: 3}
+  m_Script: {fileID: 11500000, guid: 27387a55d0e29284983b7c744c310ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_AudioLadder1: {fileID: 8300000, guid: 83457d9b606ab55448e013eaf7f03e83, type: 3}
-  m_AudioLadder2: {fileID: 8300000, guid: a9672378e2730e242ba73a904dc73e83, type: 3}
---- !u!95 &6967468186857048551
-Animator:
-  serializedVersion: 3
+  m_AudioLadder1: {fileID: 8300000, guid: 7ae1e22348f33af4a9ccd13ae1d6c101, type: 3}
+  m_AudioLadder2: {fileID: 8300000, guid: ea5e5456b1682384f9e69597efbf1819, type: 3}
+--- !u!114 &2659910650920111473
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3288147003639597545}
   m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 1264cfddb4233f04985194d16a0ec958, type: 2}
-  m_CullingMode: 2
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0449824d70bf06438c16dc004e54a1f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_TerrainProvider: {fileID: 0}
+  m_LaddersProvider: {fileID: 0}
 --- !u!82 &-3938831481916799788
 AudioSource:
   m_ObjectHideFlags: 0
@@ -162,3 +158,29 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!61 &6696373569894155047
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3288147003639597545}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 12}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 15, y: 22}
+  m_EdgeRadius: 0
