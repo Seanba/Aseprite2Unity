@@ -272,7 +272,9 @@ namespace Aseprite2Unity.Editor
 
         public void VisitTilesetChunk(AseTilesetChunk tileset)
         {
-            // Todo seanba: Do something with this
+            // Todo seanba: Do something with this.
+            // The tileset should have the pixel data for every tile in it
+            // m_AseFile.Header.ColorDepth;
         }
 
         private void ResizePalette(int maxIndex)
