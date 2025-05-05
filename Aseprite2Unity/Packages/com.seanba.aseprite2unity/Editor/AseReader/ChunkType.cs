@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Aseprite2Unity.Editor
+﻿namespace Aseprite2Unity.Editor
 {
     public enum ChunkType : ushort
     {
@@ -16,5 +10,6 @@ namespace Aseprite2Unity.Editor
         Palette = 0x2019,
         UserData = 0x2020,
         Slice = 0x2022,
+        Tileset = 0x2023,
     }
 }

@@ -10,8 +10,10 @@
         public BlendMode BlendMode { get; }
         public byte Opacity { get; }
         public string Name { get; }
+        public uint TilesetIndex { get; }
 
         public bool IsVisible => (Flags & LayerChunkFlags.Visible) != 0;
+        public bool IsLockMovement => (Flags & LayerChunkFlags.LockMovement) != 0;
 
         public AseLayerChunk(AseFrame frame, AseReader reader)
             : base(frame)
@@ -37,6 +39,17 @@
             reader.ReadBYTEs(3);
 
             Name = reader.ReadSTRING();
+
+            if (Type == LayerType.Tilemap)
+            {
+                TilesetIndex = reader.ReadDWORD();
+            }
+
+            if (IsLockMovement)
+            {
+                // Todo Seanba: How should we treat UUIDs?
+                reader.ReadBYTEs(16);
+            }
         }
 
         public override void Visit(IAseVisitor visitor)

@@ -34,8 +34,11 @@ namespace Aseprite2Unity.Editor
             Opacity = reader.ReadBYTE();
             CelType = (CelType)reader.ReadWORD();
 
-            // Ignore next 7 bytes
-            reader.ReadBYTEs(7);
+            // Todo Seanba: What to do with Z-Index (short)?
+            reader.ReadSHORT();
+
+            // Ignore next 5 bytes
+            reader.ReadBYTEs(5);
 
             if (CelType == CelType.Raw)
             {
@@ -59,6 +62,27 @@ namespace Aseprite2Unity.Editor
                 Width = reader.ReadWORD();
                 Height = reader.ReadWORD();
 
+                var bytesRead = reader.Position - pos;
+                var compressed = reader.ReadBYTEs(size - bytesRead);
+                PixelBytes = ZlibDeflate(compressed);
+            }
+            else if (CelType == CelType.CompressedTilemap)
+            {
+                // Todo Seanba: What do do with all this data?
+                var numberOfTilesWide = reader.ReadWORD();
+                var numberTilesHigh = reader.ReadWORD();
+                var bitsPerTile = reader.ReadWORD();
+
+                reader.ReadDWORD(); // Bitmask for tile Id
+                reader.ReadDWORD(); // Bitmask for X flip
+                reader.ReadDWORD(); // Bitmask for Y flip
+                reader.ReadDWORD(); // Bitmask for diagonal flip
+
+                // Reserved
+                reader.ReadBYTEs(10);
+
+                // Tilemap data is compressed
+                // Todo Seanba: Put into PixelBytes for now but that is almost certainly wrong
                 var bytesRead = reader.Position - pos;
                 var compressed = reader.ReadBYTEs(size - bytesRead);
                 PixelBytes = ZlibDeflate(compressed);

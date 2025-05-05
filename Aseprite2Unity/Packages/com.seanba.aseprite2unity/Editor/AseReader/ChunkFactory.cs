@@ -43,6 +43,7 @@ namespace Aseprite2Unity.Editor
 
                 // Chunk types we don't care about
                 case ChunkType.OldPalette:
+                case ChunkType.Tileset:
                     chunk = new AseDummyChunk(frame, reader, type, size);
                     break;
 
@@ -54,7 +55,7 @@ namespace Aseprite2Unity.Editor
             }
 
             // Check that we read the right amount of bytes
-            Assert.IsTrue((reader.Position - pos) == size, string.Format("Chunk {0} read {1} bytes but we were expected {2} bytes read", type, reader.Position - pos, size));
+            Assert.IsTrue((reader.Position - pos) == size, string.Format("Chunk {0} read {1} bytes but we were expecting {2} bytes read", type, reader.Position - pos, size));
             reader.LastChunk = chunk;
 
             return chunk;
