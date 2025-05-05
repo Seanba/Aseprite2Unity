@@ -270,6 +270,11 @@ namespace Aseprite2Unity.Editor
         {
         }
 
+        public void VisitTilesetChunk(AseTilesetChunk tileset)
+        {
+            // Todo seanba: Do something with this
+        }
+
         private void ResizePalette(int maxIndex)
         {
             // Make sure we have enough room for palette entries

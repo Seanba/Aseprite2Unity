@@ -41,9 +41,12 @@ namespace Aseprite2Unity.Editor
                     chunk = new AseUserDataChunk(frame, reader);
                     break;
 
+                case ChunkType.Tileset:
+                    chunk = new AseTilesetChunk(frame, reader);
+                    break;
+
                 // Chunk types we don't care about
                 case ChunkType.OldPalette:
-                case ChunkType.Tileset:
                     chunk = new AseDummyChunk(frame, reader, type, size);
                     break;
 

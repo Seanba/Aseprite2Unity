@@ -14,6 +14,7 @@ namespace Aseprite2Unity.Editor
         public short PositionY { get; }
         public byte Opacity { get; }
         public CelType CelType { get; }
+        public short ZIndex { get; }
 
         public ushort Width { get; }
         public ushort Height { get; }
@@ -21,6 +22,15 @@ namespace Aseprite2Unity.Editor
         public byte[] PixelBytes { get; }
 
         public AseCelChunk LinkedCel { get; }
+
+        public ushort NumberOfTilesWide { get; }
+        public ushort NumberOfTilesHigh { get; }
+        public ushort BitsPerTile { get; }
+        public uint BitmaskForTileId { get; }
+        public uint BitmaskForXFlip { get; }
+        public uint BitmaskForYFlip { get; }
+        public uint BitmaskForDiagonalFlip { get; }
+        public byte[] TileBytes { get; }
 
         public AseCelChunk(AseFrame frame, AseReader reader, int size)
             : base(frame)
@@ -33,9 +43,7 @@ namespace Aseprite2Unity.Editor
             PositionY = reader.ReadSHORT();
             Opacity = reader.ReadBYTE();
             CelType = (CelType)reader.ReadWORD();
-
-            // Todo Seanba: What to do with Z-Index (short)?
-            reader.ReadSHORT();
+            ZIndex = reader.ReadSHORT();
 
             // Ignore next 5 bytes
             reader.ReadBYTEs(5);
@@ -68,24 +76,22 @@ namespace Aseprite2Unity.Editor
             }
             else if (CelType == CelType.CompressedTilemap)
             {
-                // Todo Seanba: What do do with all this data?
-                var numberOfTilesWide = reader.ReadWORD();
-                var numberTilesHigh = reader.ReadWORD();
-                var bitsPerTile = reader.ReadWORD();
+                NumberOfTilesWide = reader.ReadWORD();
+                NumberOfTilesHigh = reader.ReadWORD();
+                BitsPerTile = reader.ReadWORD();
 
-                reader.ReadDWORD(); // Bitmask for tile Id
-                reader.ReadDWORD(); // Bitmask for X flip
-                reader.ReadDWORD(); // Bitmask for Y flip
-                reader.ReadDWORD(); // Bitmask for diagonal flip
+                BitmaskForTileId = reader.ReadDWORD();
+                BitmaskForXFlip = reader.ReadDWORD();
+                BitmaskForYFlip = reader.ReadDWORD();
+                BitmaskForDiagonalFlip = reader.ReadDWORD();
 
                 // Reserved
                 reader.ReadBYTEs(10);
 
-                // Tilemap data is compressed
-                // Todo Seanba: Put into PixelBytes for now but that is almost certainly wrong
+                // Tilemap data is compressed and needs to be deflated
                 var bytesRead = reader.Position - pos;
                 var compressed = reader.ReadBYTEs(size - bytesRead);
-                PixelBytes = ZlibDeflate(compressed);
+                TileBytes = ZlibDeflate(compressed);
             }
         }
 
@@ -94,7 +100,7 @@ namespace Aseprite2Unity.Editor
             visitor.VisitCelChunk(this);
         }
 
-        private static byte[] ZlibDeflate(byte[] bytesCompressed)
+        public static byte[] ZlibDeflate(byte[] bytesCompressed) // Todo seanba: put this into helper class
         {
             var streamCompressed = new MemoryStream(bytesCompressed);
 

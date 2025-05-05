@@ -11,6 +11,7 @@
         public byte Opacity { get; }
         public string Name { get; }
         public uint TilesetIndex { get; }
+        public byte[] UUID { get; }
 
         public bool IsVisible => (Flags & LayerChunkFlags.Visible) != 0;
         public bool IsLockMovement => (Flags & LayerChunkFlags.LockMovement) != 0;
@@ -47,8 +48,7 @@
 
             if (IsLockMovement)
             {
-                // Todo Seanba: How should we treat UUIDs?
-                reader.ReadBYTEs(16);
+                UUID = reader.ReadBYTEs(16);
             }
         }
 
