@@ -187,8 +187,12 @@ namespace Aseprite2Unity.Editor
                 cel = cel.LinkedCel;
             }
 
-            byte opacity = PixmanCombine.MUL_UN8(cel.Opacity, layer.Opacity);
+            if (cel.CelType == CelType.CompressedTilemap)
+            {
+                // Todo seanba: the texture is to be composed of tiles, not pixels
+            }
 
+            byte opacity = PixmanCombine.MUL_UN8(cel.Opacity, layer.Opacity);
             var blendfunc = GetBlendFunc(layer);
 
             for (int i = 0; i < cel.Width; i++)
