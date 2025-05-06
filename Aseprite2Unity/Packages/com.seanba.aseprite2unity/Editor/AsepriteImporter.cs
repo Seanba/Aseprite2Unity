@@ -1,5 +1,5 @@
 ﻿using System;
- using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -273,8 +273,27 @@ namespace Aseprite2Unity.Editor
         public void VisitTilesetChunk(AseTilesetChunk tileset)
         {
             // Todo seanba: Do something with this.
+            // Note: The first tile is completely blank (an erase tile?)
             // The tileset should have the pixel data for every tile in it
-            // m_AseFile.Header.ColorDepth;
+            for (int t = 0; t < tileset.NumberOfTiles; t++)
+            {
+                var texture2d = new Texture2D(tileset.TileWidth, tileset.TileWidth, TextureFormat.ARGB32, false);
+                for (int x = 0; x < tileset.TileWidth; x++)
+                {
+                    for (int y = 0; y < tileset.TileHeight; y++)
+                    {
+                        // fixit - dammit, tiles are upside down (check if they are supposed to be flipped when the image is composed)
+                        int i = x + (t * tileset.TileWidth * tileset.TileHeight);
+                        int j = y;
+                        Color32 color = GetPixelFromBytes(i, y, tileset.TileWidth, tileset.Pixels);
+                        texture2d.SetPixel(i, j, color);
+                    }
+                }
+
+                texture2d.name = $"tileset.{t}";
+                texture2d.Apply();
+                m_Context.AddObjectToAsset(texture2d.name, texture2d);
+            }
         }
 
         private void ResizePalette(int maxIndex)

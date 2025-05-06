@@ -25,7 +25,7 @@ namespace Aseprite2Unity.Editor
         public short BaseIndex { get; }
         public string TilesetName { get; }
 
-        public byte[] PixelData { get; }
+        public byte[] Pixels { get; }
 
         public AseTilesetChunk(AseFrame frame, AseReader reader) : base(frame)
         {
@@ -51,7 +51,9 @@ namespace Aseprite2Unity.Editor
             {
                 var dataLength = reader.ReadDWORD();
                 var compressed = reader.ReadBYTEs((int)dataLength);
-                PixelData = AseCelChunk.ZlibDeflate(compressed);
+
+                // tile width * tile height * number of tiles
+                Pixels = AseCelChunk.ZlibDeflate(compressed);
             }
         }
 
