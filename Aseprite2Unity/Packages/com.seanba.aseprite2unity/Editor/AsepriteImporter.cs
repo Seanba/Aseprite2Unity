@@ -191,27 +191,29 @@ namespace Aseprite2Unity.Editor
             {
                 // Todo seanba: the texture is to be composed of tiles, not pixels
             }
-
-            byte opacity = PixmanCombine.MUL_UN8(cel.Opacity, layer.Opacity);
-            var blendfunc = GetBlendFunc(layer);
-
-            for (int i = 0; i < cel.Width; i++)
+            else if (cel.CelType == CelType.CompressedImage)
             {
-                for (int j = 0; j < cel.Height; j++)
+                byte opacity = PixmanCombine.MUL_UN8(cel.Opacity, layer.Opacity);
+                var blendfunc = GetBlendFunc(layer);
+
+                for (int i = 0; i < cel.Width; i++)
                 {
-                    var x = cel.PositionX + i;
-                    var y = FlipY(cel.PositionY + j);
+                    for (int j = 0; j < cel.Height; j++)
+                    {
+                        var x = cel.PositionX + i;
+                        var y = FlipY(m_Texture2D.height, cel.PositionY + j);
 
-                    Color32 colorBackdrop = m_Texture2D.GetPixel(x, y);
-                    Color32 colorSrc = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
+                        Color32 colorBackdrop = m_Texture2D.GetPixel(x, y);
+                        Color32 colorSrc = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
 
-                    uint backdrop = Color32ToRGBA(colorBackdrop);
-                    uint src = Color32ToRGBA(colorSrc);
+                        uint backdrop = Color32ToRGBA(colorBackdrop);
+                        uint src = Color32ToRGBA(colorSrc);
 
-                    uint result = blendfunc(backdrop, src, opacity);
-                    Color32 colorResult = RGBAToColor32(result);
+                        uint result = blendfunc(backdrop, src, opacity);
+                        Color32 colorResult = RGBAToColor32(result);
 
-                    m_Texture2D.SetPixel(x, y, colorResult);
+                        m_Texture2D.SetPixel(x, y, colorResult);
+                    }
                 }
             }
 
@@ -286,11 +288,10 @@ namespace Aseprite2Unity.Editor
                 {
                     for (int y = 0; y < tileset.TileHeight; y++)
                     {
-                        // fixit - dammit, tiles are upside down (check if they are supposed to be flipped when the image is composed)
                         int i = x + (t * tileset.TileWidth * tileset.TileHeight);
-                        int j = y;
-                        Color32 color = GetPixelFromBytes(i, y, tileset.TileWidth, tileset.Pixels);
-                        texture2d.SetPixel(i, j, color);
+                        int j = FlipY(y, tileset.TileHeight);
+                        Color32 color = GetPixelFromBytes(i, j, tileset.TileWidth, tileset.Pixels);
+                        texture2d.SetPixel(x, y, color);
                     }
                 }
 
@@ -393,6 +394,11 @@ namespace Aseprite2Unity.Editor
             return new Color32(red, green, blue, alpha);
         }
 
+        private static int FlipY(int y, int height)
+        {
+            return (height - y) - 1;
+        }
+
         private Color32 GetPixelFromBytes(int x, int y, int stride, byte[] bytes)
         {
             var depth = m_AseFile.Header.ColorDepth;
@@ -424,11 +430,6 @@ namespace Aseprite2Unity.Editor
             // Unsupported color depth
             Debug.LogErrorFormat("Unsupported color depth: {0}", depth);
             return Color.magenta;
-        }
-
-        private int FlipY(int y)
-        {
-            return (m_Texture2D.height - y) - 1;
         }
 
         private void BuildAnimations()
