@@ -40,9 +40,12 @@ float3 blend_darken(float3 b, float3 s)
     return min(b, s);
 }
 
-/*
-public static uint8_t blend_lighten(uint8_t b, uint8_t s) => Math.Max(b, s);
+float3 blend_lighten(float3 b, float3 s)
+{
+    return max(b, s);
+}
 
+/*
 public static uint8_t blend_hard_light(uint8_t b, uint8_t s)
 {
     return s < 128 ? blend_multiply(b, (uint8_t)(s << 1)) : blend_screen(b, (uint8_t)((s << 1) - 255));
@@ -172,16 +175,14 @@ float4 rgba_blender_darken(float4 backdrop, float4 src, float opacity)
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
-/*
-public static color_t rgba_blender_lighten(color_t backdrop, color_t src, int opacity)
+float4 rgba_blender_lighten(float4 backdrop, float4 src, float opacity)
 {
-    uint8_t r = blend_lighten(dc.rgba_getr(backdrop), dc.rgba_getr(src));
-    uint8_t g = blend_lighten(dc.rgba_getg(backdrop), dc.rgba_getg(src));
-    uint8_t b = blend_lighten(dc.rgba_getb(backdrop), dc.rgba_getb(src));
-    src = dc.rgba(r, g, b, 0) | (src & dc.rgba_a_mask);
+    float3 rgb = blend_lighten(backdrop.rgb, src.rgb);
+    src = float4(rgb, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
+/*
 public static color_t rgba_blender_color_dodge(color_t backdrop, color_t src, int opacity)
 {
     uint8_t r = blend_color_dodge(dc.rgba_getr(backdrop), dc.rgba_getr(src));
