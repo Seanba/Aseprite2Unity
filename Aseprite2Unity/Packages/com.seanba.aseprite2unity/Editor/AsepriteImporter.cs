@@ -201,7 +201,7 @@ namespace Aseprite2Unity.Editor
                     for (int j = 0; j < cel.Height; j++)
                     {
                         var x = cel.PositionX + i;
-                        var y = FlipY(m_Texture2D.height, cel.PositionY + j);
+                        var y = FlipY(cel.PositionY + j, m_Texture2D.height);
 
                         Color32 colorBackdrop = m_Texture2D.GetPixel(x, y);
                         Color32 colorSrc = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
