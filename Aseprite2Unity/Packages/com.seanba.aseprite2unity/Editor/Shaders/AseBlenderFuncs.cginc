@@ -77,19 +77,21 @@ public static uint8_t blend_color_dodge(uint8_t b, uint8_t s)
     else
         return pc.DIV_UN8(b, s); // return b / (1-s)
 }
+*/
 
-public static uint8_t blend_color_burn(uint32_t b, uint32_t s)
+float blend_color_burn(float b, float s)
 {
-    if (b == 255)
-        return 255;
+    if (b == 1.0)
+        return 1.0;
 
-    b = (255 - b);
+    b = (1.0 - b);
     if (b >= s)
         return 0;
     else
-        return (uint8_t)(255 - pc.DIV_UN8((uint8_t)b, (uint8_t)s)); // return 1 - ((1-b)/s)
+        return 1 - b/s;
 }
 
+/*
 public static uint8_t blend_soft_light(uint32_t _b, uint32_t _s)
 {
     double b = _b / 255.0;
@@ -188,16 +190,18 @@ public static color_t rgba_blender_color_dodge(color_t backdrop, color_t src, in
     src = dc.rgba(r, g, b, 0) | (src & dc.rgba_a_mask);
     return rgba_blender_normal(backdrop, src, opacity);
 }
+*/
 
-public static color_t rgba_blender_color_burn(color_t backdrop, color_t src, int opacity)
+float4 rgba_blender_color_burn(float4 backdrop, float4 src, float opacity)
 {
-    uint8_t r = blend_color_burn(dc.rgba_getr(backdrop), dc.rgba_getr(src));
-    uint8_t g = blend_color_burn(dc.rgba_getg(backdrop), dc.rgba_getg(src));
-    uint8_t b = blend_color_burn(dc.rgba_getb(backdrop), dc.rgba_getb(src));
-    src = dc.rgba(r, g, b, 0) | (src & dc.rgba_a_mask);
+    float r = blend_color_burn(backdrop.r, src.r);
+    float g = blend_color_burn(backdrop.g, src.g);
+    float b = blend_color_burn(backdrop.b, src.b);
+    src = float4(r, g, b, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
+/*
 public static color_t rgba_blender_hard_light(color_t backdrop, color_t src, int opacity)
 {
     uint8_t r = blend_hard_light(dc.rgba_getr(backdrop), dc.rgba_getr(src));
