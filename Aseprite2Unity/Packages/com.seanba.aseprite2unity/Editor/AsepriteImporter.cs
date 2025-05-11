@@ -22,6 +22,10 @@ namespace Aseprite2Unity.Editor
         public AnimatorCullingMode m_AnimatorCullingMode = AnimatorCullingMode.AlwaysAnimate;
         public RuntimeAnimatorController m_AnimatorController;
 
+        // The dimensions of the Aseprite file
+        public int AseWidth => m_AseFile.Header.Width;
+        public int AseHeight => m_AseFile.Header.Height;
+
         private readonly List<AseLayerChunk> m_Layers = new List<AseLayerChunk>();
         private readonly List<AseFrame> m_Frames = new List<AseFrame>();
         private readonly List<Sprite> m_Sprites = new List<Sprite>();
@@ -42,6 +46,39 @@ namespace Aseprite2Unity.Editor
         [SerializeField]
         private List<string> m_Errors = new List<string>();
         public IEnumerable<string> Errors { get { return m_Errors; } }
+
+        // Helper classes
+        private class ScopedRenderTexture : IDisposable
+        {
+            private readonly RenderTexture m_OldRenderTexture;
+
+            public ScopedRenderTexture(RenderTexture renderTexture)
+            {
+                m_OldRenderTexture = RenderTexture.active;
+                RenderTexture.active = renderTexture;
+            }
+
+            public void Dispose()
+            {
+                RenderTexture.active = m_OldRenderTexture;
+            }
+        }
+
+        private class ScopedUnityEngineObject<T> : IDisposable where T : UnityEngine.Object
+        {
+            public T Obj { get; }
+
+            public ScopedUnityEngineObject(T obj)
+            {
+                Obj = obj;
+            }
+
+            public void Dispose()
+            {
+                UnityEngine.Object.DestroyImmediate(Obj);
+            }
+        }
+
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
@@ -132,18 +169,15 @@ namespace Aseprite2Unity.Editor
 
         public void BeginFrameVisit(AseFrame frame)
         {
-            var width = m_AseFile.Header.Width;
-            var height = m_AseFile.Header.Height;
-
-            m_FrameRenderTexture ??= new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32, 0);
+            m_FrameRenderTexture ??= new RenderTexture(AseWidth, AseHeight, 0, RenderTextureFormat.ARGB32, 0);
             m_FrameRenderTexture.wrapMode = TextureWrapMode.Clamp;
             m_FrameRenderTexture.filterMode = FilterMode.Point;
 
-            // Clear out the render render
-            RenderTexture oldRenderTexture = RenderTexture.active;
-            RenderTexture.active = m_FrameRenderTexture;
-            GL.Clear(true, true, Color.clear);
-            RenderTexture.active = oldRenderTexture;
+            // Clear out the render texture
+            using (new ScopedRenderTexture(m_FrameRenderTexture))
+            {
+                GL.Clear(true, true, Color.clear);
+            }
 
             m_Frames.Add(frame);
         }
@@ -151,15 +185,14 @@ namespace Aseprite2Unity.Editor
         public void EndFrameVisit(AseFrame frame)
         {
             // Commit the frame by copying it to a Texture2D resource
-            var width = m_FrameRenderTexture.width;
-            var height = m_FrameRenderTexture.height;
-            var texture2d = new Texture2D(width, height, TextureFormat.ARGB32, false);
+            var texture2d = CreateTexture2D();
 
             // Copy the frame render texture to our 2D texture
-            RenderTexture oldRenderTeuxtre = RenderTexture.active;
-            RenderTexture.active = oldRenderTeuxtre;
-            texture2d.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-            texture2d.Apply(false, true);
+            using (new ScopedRenderTexture(m_FrameRenderTexture))
+            {
+                texture2d.ReadPixels(new Rect(0, 0, AseWidth, AseHeight), 0, 0);
+                texture2d.Apply(false, true);
+            }
 
             // We should have everything we need to make a sprite and add it to our asset
             var assetName = Path.GetFileNameWithoutExtension(assetPath);
@@ -172,7 +205,7 @@ namespace Aseprite2Unity.Editor
 
             // Make a sprite out of the texture
             var pivot = m_Pivot ?? new Vector2(0.5f, 0.5f);
-            var sprite = Sprite.Create(texture2d, new Rect(0, 0, texture2d.width, texture2d.height), pivot, m_PixelsPerUnit);
+            var sprite = Sprite.Create(texture2d, new Rect(0, 0, AseWidth, AseHeight), pivot, m_PixelsPerUnit);
             m_Sprites.Add(sprite);
 
             var spriteId = $"Sprites._{m_Sprites.Count - 1}";
@@ -184,61 +217,60 @@ namespace Aseprite2Unity.Editor
 
         public void VisitCelChunk(AseCelChunk cel)
         {
-            // fixit - a cell is a Texture2D that is blit to the RenderTexture
-            var texture2d = new Texture2D(m_FrameRenderTexture.width, m_FrameRenderTexture.height, TextureFormat.ARGB32, false);
-
-            // Is our layer visible?
-            var layer = m_Layers[cel.LayerIndex];
-            if (!layer.IsVisible)
+            using (var texture2d = new ScopedUnityEngineObject<Texture2D>(CreateTexture2D()))
             {
-                return;
-            }
-
-            if (cel.LinkedCel != null)
-            {
-                cel = cel.LinkedCel;
-            }
-
-            if (cel.CelType == CelType.CompressedTilemap)
-            {
-                // Todo seanba: the texture is to be composed of tiles, not pixels
-            }
-            else if (cel.CelType == CelType.CompressedImage)
-            {
-                byte opacity = PixmanCombine.MUL_UN8(cel.Opacity, layer.Opacity);
-                var blendfunc = GetBlendFunc(layer);
-
-                for (int i = 0; i < cel.Width; i++)
+                // Is our layer visible?
+                var layer = m_Layers[cel.LayerIndex];
+                if (!layer.IsVisible)
                 {
-                    for (int j = 0; j < cel.Height; j++)
+                    return;
+                }
+
+                if (cel.LinkedCel != null)
+                {
+                    cel = cel.LinkedCel;
+                }
+
+                if (cel.CelType == CelType.CompressedTilemap)
+                {
+                    // Todo seanba: the texture is to be composed of tiles, not pixels
+                }
+                else if (cel.CelType == CelType.CompressedImage)
+                {
+                    byte opacity = PixmanCombine.MUL_UN8(cel.Opacity, layer.Opacity);
+                    var blendfunc = GetBlendFunc(layer);
+
+                    for (int i = 0; i < cel.Width; i++)
                     {
-                        var x = cel.PositionX + i;
-                        var y = FlipY(cel.PositionY + j, texture2d.height);
+                        for (int j = 0; j < cel.Height; j++)
+                        {
+                            var x = cel.PositionX + i;
+                            var y = FlipY(cel.PositionY + j, texture2d.Obj.height);
 
-                        //Color32 colorBackdrop = texture2d.GetPixel(x, y); // fixit - blending to be done by shader
-                        //Color32 colorSrc = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
+                            //Color32 colorBackdrop = texture2d.GetPixel(x, y); // fixit - blending to be done by shader
+                            //Color32 colorSrc = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
 
-                        //uint backdrop = Color32ToRGBA(colorBackdrop);
-                        //uint src = Color32ToRGBA(colorSrc);
+                            //uint backdrop = Color32ToRGBA(colorBackdrop);
+                            //uint src = Color32ToRGBA(colorSrc);
 
-                        //uint result = blendfunc(backdrop, src, opacity);
-                        //Color32 colorResult = RGBAToColor32(result);
+                            //uint result = blendfunc(backdrop, src, opacity);
+                            //Color32 colorResult = RGBAToColor32(result);
 
-                        Color32 colorResult = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
-                        texture2d.SetPixel(x, y, colorResult);
+                            Color32 colorResult = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
+                            texture2d.Obj.SetPixel(x, y, colorResult);
+                        }
                     }
                 }
+
+                texture2d.Obj.Apply();
+
+                // We are done writing to the cel texture now blit it to the frame
+                var blitShader = Shader.Find("Hidden/Aseprite2Unity/AsepriteCelBlitter");
+                using (var blitMaterial = new ScopedUnityEngineObject<Material>(new Material(blitShader)))
+                {
+                    Graphics.Blit(texture2d.Obj, m_FrameRenderTexture, blitMaterial.Obj);
+                }
             }
-
-            // We are done writing to the cel texture now blit it to the frame
-            var blitShader = Shader.Find("Hidden/Aseprite2Unity/AsepriteCelBlitter");
-            var blitMaterial = new Material(blitShader);
-
-            texture2d.Apply();
-            Graphics.Blit(texture2d, m_FrameRenderTexture, blitMaterial);
-
-            UnityEngine.Object.DestroyImmediate(texture2d);
-            UnityEngine.Object.DestroyImmediate(blitMaterial);
         }
 
         public void VisitDummyChunk(AseDummyChunk dummy)
@@ -289,7 +321,7 @@ namespace Aseprite2Unity.Editor
                 float px = entry.OriginX + pw * 0.5f;
                 float py = entry.OriginY + ph * 0.5f;
 
-                m_Pivot = new Vector2(px / m_FrameRenderTexture.width, 1.0f - py / m_FrameRenderTexture.height);
+                m_Pivot = new Vector2(px / AseWidth, 1.0f - py / AseHeight);
             }
         }
 
@@ -304,7 +336,7 @@ namespace Aseprite2Unity.Editor
             // The tileset should have the pixel data for every tile in it
             for (int t = 0; t < tileset.NumberOfTiles; t++)
             {
-                var texture2d = new Texture2D(tileset.TileWidth, tileset.TileWidth, TextureFormat.ARGB32, false);
+                var texture2d = CreateTexture2D();
                 for (int x = 0; x < tileset.TileWidth; x++)
                 {
                     for (int y = 0; y < tileset.TileHeight; y++)
@@ -418,6 +450,14 @@ namespace Aseprite2Unity.Editor
         private static int FlipY(int y, int height)
         {
             return (height - y) - 1;
+        }
+
+        private Texture2D CreateTexture2D()
+        {
+            var texture2d = new Texture2D(AseWidth, AseHeight, TextureFormat.ARGB32, false);
+            texture2d.wrapMode = TextureWrapMode.Clamp;
+            texture2d.filterMode = FilterMode.Point;
+            return texture2d;
         }
 
         private Color32 GetPixelFromBytes(int x, int y, int stride, byte[] bytes)
