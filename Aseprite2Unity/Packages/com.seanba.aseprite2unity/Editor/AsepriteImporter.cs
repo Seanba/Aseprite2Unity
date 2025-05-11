@@ -247,17 +247,8 @@ namespace Aseprite2Unity.Editor
                             var x = cel.PositionX + i;
                             var y = FlipY(cel.PositionY + j, texture2d.Obj.height);
 
-                            //Color32 colorBackdrop = texture2d.GetPixel(x, y); // fixit - blending to be done by shader
-                            //Color32 colorSrc = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
-
-                            //uint backdrop = Color32ToRGBA(colorBackdrop);
-                            //uint src = Color32ToRGBA(colorSrc);
-
-                            //uint result = blendfunc(backdrop, src, opacity);
-                            //Color32 colorResult = RGBAToColor32(result);
-
-                            Color32 colorResult = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
-                            texture2d.Obj.SetPixel(x, y, colorResult);
+                            Color32 pixel = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
+                            texture2d.Obj.SetPixel(x, y, pixel);
                         }
                     }
                 }
@@ -268,7 +259,23 @@ namespace Aseprite2Unity.Editor
                 var blitShader = Shader.Find("Hidden/Aseprite2Unity/AsepriteCelBlitter");
                 using (var blitMaterial = new ScopedUnityEngineObject<Material>(new Material(blitShader)))
                 {
-                    Graphics.Blit(texture2d.Obj, m_FrameRenderTexture, blitMaterial.Obj);
+                    // Create the backgournd texture from the current pixels on the frame render texture
+                    // Copy the frame render texture to our 2D texture
+                    using (var backgoundTexture = new ScopedUnityEngineObject<Texture2D>(CreateTexture2D()))
+                    {
+                        using (new ScopedRenderTexture(m_FrameRenderTexture))
+                        {
+                            backgoundTexture.Obj.ReadPixels(new Rect(0, 0, AseWidth, AseHeight), 0, 0);
+                            backgoundTexture.Obj.Apply(false);
+                        }
+
+                        blitMaterial.Obj.SetTexture("_Background", backgoundTexture.Obj);
+                        blitMaterial.Obj.SetFloat("_Opacity", layer.Opacity / 255.0f);
+                        //blitMaterial.Obj.SetInt (blend mode) // fixit - choose different blend modes
+
+
+                        Graphics.Blit(texture2d.Obj, m_FrameRenderTexture, blitMaterial.Obj);
+                    }
                 }
             }
         }
@@ -431,20 +438,6 @@ namespace Aseprite2Unity.Editor
                     Debug.LogErrorFormat("Unsupported blend mode: {0}", layer.BlendMode);
                     return Blender.rgba_blender_normal;
             }
-        }
-
-        private static uint Color32ToRGBA(Color32 color)
-        {
-            return DocColor.rgba(color.r, color.g, color.b, color.a);
-        }
-
-        private static Color32 RGBAToColor32(uint color)
-        {
-            byte red = DocColor.rgba_getr(color);
-            byte green = DocColor.rgba_getg(color);
-            byte blue = DocColor.rgba_getb(color);
-            byte alpha = DocColor.rgba_geta(color);
-            return new Color32(red, green, blue, alpha);
         }
 
         private static int FlipY(int y, int height)
