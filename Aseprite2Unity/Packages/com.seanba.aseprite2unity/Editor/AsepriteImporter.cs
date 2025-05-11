@@ -271,8 +271,7 @@ namespace Aseprite2Unity.Editor
 
                         blitMaterial.Obj.SetTexture("_Background", backgoundTexture.Obj);
                         blitMaterial.Obj.SetFloat("_Opacity", layer.Opacity / 255.0f);
-                        //blitMaterial.Obj.SetInt (blend mode) // fixit - choose different blend modes
-
+                        blitMaterial.Obj.SetInt("_BlendMode", (int)layer.BlendMode);
 
                         Graphics.Blit(texture2d.Obj, m_FrameRenderTexture, blitMaterial.Obj);
                     }

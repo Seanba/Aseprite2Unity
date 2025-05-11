@@ -57,7 +57,13 @@ Shader "Hidden/Aseprite2Unity/AsepriteCelBlitter"
             {
                 float4 background = tex2D(_Background, input.uv);
                 float4 source = tex2D(_MainTex, input.uv);
-                return blend_mode_normal(background, source, _Opacity);
+
+                if (_BlendMode == ASE_BLEND_MODE_Normal)
+                {
+                    return blend_mode_normal(background, source, _Opacity);
+                }
+
+                return blend_mode_normal(background, source, _Opacity) * float4(1, 1, 0, 1);
             }
             ENDCG
         }
