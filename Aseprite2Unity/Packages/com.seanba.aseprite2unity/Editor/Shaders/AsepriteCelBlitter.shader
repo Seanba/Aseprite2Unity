@@ -60,10 +60,18 @@ Shader "Hidden/Aseprite2Unity/AsepriteCelBlitter"
 
                 if (_BlendMode == ASE_BLEND_MODE_Normal)
                 {
-                    return blend_mode_normal(background, source, _Opacity);
+                    return rgba_blender_normal(background, source, _Opacity);
+                }
+                if (_BlendMode == ASE_BLEND_MODE_Darken)
+                {
+                    return rgba_blender_darken(background, source, _Opacity);
+                }
+                if (_BlendMode == ASE_BLEND_MODE_Multiply)
+                {
+                    return rgba_blender_multiply(background, source, _Opacity);
                 }
 
-                return blend_mode_normal(background, source, _Opacity) * float4(1, 1, 0, 1);
+                return rgba_blender_normal(background, source, _Opacity) * float4(1, 1, 0, 1); // fixit - unsupported blend mode
             }
             ENDCG
         }
