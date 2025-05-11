@@ -33,8 +33,7 @@ namespace Aseprite2Unity.Editor
         private AssetImportContext m_Context;
         private AseFile m_AseFile;
 
-        private Color[] m_ClearPixels;
-        private Texture2D m_Texture2D;
+        private RenderTexture m_FrameRenderTexture;
         private AseFrameTagsChunk m_AseFrameTagsChunk;
         private Vector2? m_Pivot;
 
@@ -70,9 +69,6 @@ namespace Aseprite2Unity.Editor
 
             // Start off with a an empty 256 palette
             m_Palette = Enumerable.Repeat(m_TransparentColor, 256).ToList();
-
-            // Create the array of clear pixels we'll use to begin each frame
-            m_ClearPixels = Enumerable.Repeat(Color.clear, m_AseFile.Header.Width * m_AseFile.Header.Height).ToArray();
 
             var icon = AssetDatabaseEx.LoadFirstAssetByFilter<Texture2D>("aseprite2unity-icon-0x1badd00d");
 
@@ -138,32 +134,45 @@ namespace Aseprite2Unity.Editor
         {
             var width = m_AseFile.Header.Width;
             var height = m_AseFile.Header.Height;
-            m_Texture2D = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            m_Texture2D.wrapMode = TextureWrapMode.Clamp;
-            m_Texture2D.filterMode = FilterMode.Point;
 
-            // Texture starts off blank
-            m_Texture2D.SetPixels(0, 0, width, height, m_ClearPixels);
-            m_Texture2D.Apply();
+            m_FrameRenderTexture ??= new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32, 0);
+            m_FrameRenderTexture.wrapMode = TextureWrapMode.Clamp;
+            m_FrameRenderTexture.filterMode = FilterMode.Point;
+
+            // Clear out the render render
+            RenderTexture oldRenderTexture = RenderTexture.active;
+            RenderTexture.active = m_FrameRenderTexture;
+            GL.Clear(true, true, Color.clear);
+            RenderTexture.active = oldRenderTexture;
 
             m_Frames.Add(frame);
         }
 
         public void EndFrameVisit(AseFrame frame)
         {
+            // Commit the frame by copying it to a Texture2D resource
+            var width = m_FrameRenderTexture.width;
+            var height = m_FrameRenderTexture.height;
+            var texture2d = new Texture2D(width, height, TextureFormat.ARGB32, false);
+
+            // Copy the frame render texture to our 2D texture
+            RenderTexture oldRenderTeuxtre = RenderTexture.active;
+            RenderTexture.active = oldRenderTeuxtre;
+            texture2d.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+            texture2d.Apply(false, true);
+
             // We should have everything we need to make a sprite and add it to our asset
             var assetName = Path.GetFileNameWithoutExtension(assetPath);
             var textureId = $"Textures._{m_Frames.Count - 1}";
             var textureName = $"{assetName}.{textureId}";
 
             // The texture should be ready to be added to our asset
-            m_Texture2D.name = textureName;
-            m_Texture2D.Apply();
-            m_Context.AddObjectToAsset(textureId, m_Texture2D);
+            texture2d.name = textureName;
+            m_Context.AddObjectToAsset(textureId, texture2d);
 
             // Make a sprite out of the texture
             var pivot = m_Pivot ?? new Vector2(0.5f, 0.5f);
-            var sprite = Sprite.Create(m_Texture2D, new Rect(0, 0, m_Texture2D.width, m_Texture2D.height), pivot, m_PixelsPerUnit);
+            var sprite = Sprite.Create(texture2d, new Rect(0, 0, texture2d.width, texture2d.height), pivot, m_PixelsPerUnit);
             m_Sprites.Add(sprite);
 
             var spriteId = $"Sprites._{m_Sprites.Count - 1}";
@@ -175,6 +184,9 @@ namespace Aseprite2Unity.Editor
 
         public void VisitCelChunk(AseCelChunk cel)
         {
+            // fixit - a cell is a Texture2D that is blit to the RenderTexture
+            var texture2d = new Texture2D(m_FrameRenderTexture.width, m_FrameRenderTexture.height, TextureFormat.ARGB32, false);
+
             // Is our layer visible?
             var layer = m_Layers[cel.LayerIndex];
             if (!layer.IsVisible)
@@ -201,23 +213,32 @@ namespace Aseprite2Unity.Editor
                     for (int j = 0; j < cel.Height; j++)
                     {
                         var x = cel.PositionX + i;
-                        var y = FlipY(cel.PositionY + j, m_Texture2D.height);
+                        var y = FlipY(cel.PositionY + j, texture2d.height);
 
-                        Color32 colorBackdrop = m_Texture2D.GetPixel(x, y);
-                        Color32 colorSrc = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
+                        //Color32 colorBackdrop = texture2d.GetPixel(x, y); // fixit - blending to be done by shader
+                        //Color32 colorSrc = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
 
-                        uint backdrop = Color32ToRGBA(colorBackdrop);
-                        uint src = Color32ToRGBA(colorSrc);
+                        //uint backdrop = Color32ToRGBA(colorBackdrop);
+                        //uint src = Color32ToRGBA(colorSrc);
 
-                        uint result = blendfunc(backdrop, src, opacity);
-                        Color32 colorResult = RGBAToColor32(result);
+                        //uint result = blendfunc(backdrop, src, opacity);
+                        //Color32 colorResult = RGBAToColor32(result);
 
-                        m_Texture2D.SetPixel(x, y, colorResult);
+                        Color32 colorResult = GetPixelFromBytes(i, j, cel.Width, cel.PixelBytes);
+                        texture2d.SetPixel(x, y, colorResult);
                     }
                 }
             }
 
-            m_Texture2D.Apply();
+            // We are done writing to the cel texture now blit it to the frame
+            var blitShader = Shader.Find("Hidden/Aseprite2Unity/AsepriteCelBlitter");
+            var blitMaterial = new Material(blitShader);
+
+            texture2d.Apply();
+            Graphics.Blit(texture2d, m_FrameRenderTexture, blitMaterial);
+
+            UnityEngine.Object.DestroyImmediate(texture2d);
+            UnityEngine.Object.DestroyImmediate(blitMaterial);
         }
 
         public void VisitDummyChunk(AseDummyChunk dummy)
@@ -268,7 +289,7 @@ namespace Aseprite2Unity.Editor
                 float px = entry.OriginX + pw * 0.5f;
                 float py = entry.OriginY + ph * 0.5f;
 
-                m_Pivot = new Vector2(px / m_Texture2D.width, 1.0f - py / m_Texture2D.height);
+                m_Pivot = new Vector2(px / m_FrameRenderTexture.width, 1.0f - py / m_FrameRenderTexture.height);
             }
         }
 
