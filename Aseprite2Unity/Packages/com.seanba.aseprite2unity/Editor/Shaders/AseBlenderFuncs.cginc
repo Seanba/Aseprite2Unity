@@ -31,8 +31,12 @@ float3 blend_multiply(float3 b, float3 s)
     return b * s;
 }
 
+float3 blend_screen(float3 b, float3 s)
+{
+    return b + s - b * s;
+}
+
 /*
-public static uint8_t blend_screen(uint8_t b, uint8_t s) => (uint8_t)(b + s - pc.MUL_UN8(b, s));
 public static uint8_t blend_overlay(uint8_t b, uint8_t s) => blend_hard_light(s, b);
 */
 float3 blend_darken(float3 b, float3 s)
@@ -143,21 +147,19 @@ float4 rgba_blender_normal(float4 backdrop, float4 src, float opacity)
 
 float4 rgba_blender_multiply(float4 backdrop, float4 src, float opacity)
 {
-    float3 rgb = blend_multiply(backdrop, src);
+    float3 rgb = blend_multiply(backdrop.rgb, src.rgb);
+    src = float4(rgb, src.a);
+    return rgba_blender_normal(backdrop, src, opacity);
+}
+
+float4 rgba_blender_screen(float4 backdrop, float4 src, float opacity)
+{
+    float3 rgb = blend_screen(backdrop.rgb, src.rgb);
     src = float4(rgb, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
 /*
-public static color_t rgba_blender_screen(color_t backdrop, color_t src, int opacity)
-{
-    uint8_t r = blend_screen(dc.rgba_getr(backdrop), dc.rgba_getr(src));
-    uint8_t g = blend_screen(dc.rgba_getg(backdrop), dc.rgba_getg(src));
-    uint8_t b = blend_screen(dc.rgba_getb(backdrop), dc.rgba_getb(src));
-    src = dc.rgba(r, g, b, 0) | (src & dc.rgba_a_mask);
-    return rgba_blender_normal(backdrop, src, opacity);
-}
-
 public static color_t rgba_blender_overlay(color_t backdrop, color_t src, int opacity)
 {
     uint8_t r = blend_overlay(dc.rgba_getr(backdrop), dc.rgba_getr(src));
