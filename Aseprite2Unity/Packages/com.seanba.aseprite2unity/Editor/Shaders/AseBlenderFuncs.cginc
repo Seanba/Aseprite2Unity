@@ -88,10 +88,10 @@ float blend_color_dodge(float b, float s)
 
 float blend_color_burn(float b, float s)
 {
-    if (b == 1.0)
-        return 1.0;
+    if (b == 1)
+        return 1;
 
-    b = (1.0 - b);
+    b = (1 - b);
     if (b >= s)
         return 0;
     else
@@ -133,7 +133,6 @@ float4 rgba_blender_normal(float4 backdrop, float4 src, float opacity)
         return backdrop;
     }
 
-    // Note: Variable names are chosen to match source C++
     float4 B = backdrop;
     float4 S = src;
 
@@ -172,7 +171,7 @@ public static color_t rgba_blender_overlay(color_t backdrop, color_t src, int op
 
 float4 rgba_blender_darken(float4 backdrop, float4 src, float opacity)
 {
-    float3 rgb = blend_darken(backdrop, src);
+    float3 rgb = blend_darken(backdrop.rgb, src.rgb);
     src = float4(rgb, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
@@ -401,16 +400,16 @@ public static color_t rgba_blender_hsl_luminosity(color_t backdrop, color_t src,
     src = dc.rgba((uint32_t)(255.0 * r), (uint32_t)(255.0 * g), (uint32_t)(255.0 * b), 0) | (src & dc.rgba_a_mask);
     return rgba_blender_normal(backdrop, src, opacity);
 }
+*/
 
-public static color_t rgba_blender_addition(color_t backdrop, color_t src, int opacity)
+float4 rgba_blender_addition(float4 backdrop, float4 src, float opacity)
 {
-    int r = dc.rgba_getr(backdrop) + dc.rgba_getr(src);
-    int g = dc.rgba_getg(backdrop) + dc.rgba_getg(src);
-    int b = dc.rgba_getb(backdrop) + dc.rgba_getb(src);
-    src = dc.rgba((uint8_t)Math.Min(r, 255), (uint8_t)Math.Min(g, 255), (uint8_t)Math.Min(b, 255), 0) | (src & dc.rgba_a_mask);
+    float3 rgb = saturate(backdrop.rgb + src.rgb);
+    src = float4(rgb, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
+/*
 public static color_t rgba_blender_subtract(color_t backdrop, color_t src, int opacity)
 {
     int r = dc.rgba_getr(backdrop) - dc.rgba_getr(src);

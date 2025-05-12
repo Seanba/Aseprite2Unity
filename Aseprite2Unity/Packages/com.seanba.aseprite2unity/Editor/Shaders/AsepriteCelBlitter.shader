@@ -58,6 +58,16 @@ Shader "Hidden/Aseprite2Unity/AsepriteCelBlitter"
                 float4 background = tex2D(_Background, input.uv);
                 float4 source = tex2D(_MainTex, input.uv);
 
+                if (background.a == 0)
+                {
+                    return source * float4(1, 1, 1, _Opacity);
+                }
+
+                if (source.a == 0)
+                {
+                    return background;
+                }
+
                 if (_BlendMode == ASE_BLEND_MODE_Normal)
                 {
                     return rgba_blender_normal(background, source, _Opacity);
@@ -86,8 +96,13 @@ Shader "Hidden/Aseprite2Unity/AsepriteCelBlitter"
                 {
                     return rgba_blender_color_dodge(background, source, _Opacity);
                 }
+                if (_BlendMode == ASE_BLEND_MODE_Addition)
+                {
+                    return rgba_blender_addition(background, source, _Opacity);
+                }
 
-                return rgba_blender_normal(background, source, _Opacity) * float4(1, 1, 0, 1); // fixit - unsupported blend mode
+                // Hotpink if we got to here. We must have some unhandled blend mode.
+                return float4(1, 0, 1, 1);
             }
             ENDCG
         }

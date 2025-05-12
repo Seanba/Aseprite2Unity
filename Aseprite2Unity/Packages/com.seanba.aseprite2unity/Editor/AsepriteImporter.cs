@@ -176,7 +176,7 @@ namespace Aseprite2Unity.Editor
             // Clear out the render texture
             using (new ScopedRenderTexture(m_FrameRenderTexture))
             {
-                GL.Clear(true, true, Color.clear);
+                GL.Clear(true, true, new Color(1, 1, 1, 0));
             }
 
             m_Frames.Add(frame);
@@ -237,9 +237,6 @@ namespace Aseprite2Unity.Editor
                 }
                 else if (cel.CelType == CelType.CompressedImage)
                 {
-                    byte opacity = PixmanCombine.MUL_UN8(cel.Opacity, layer.Opacity);
-                    var blendfunc = GetBlendFunc(layer);
-
                     for (int i = 0; i < cel.Width; i++)
                     {
                         for (int j = 0; j < cel.Height; j++)
@@ -449,6 +446,13 @@ namespace Aseprite2Unity.Editor
             var texture2d = new Texture2D(AseWidth, AseHeight, TextureFormat.ARGB32, false);
             texture2d.wrapMode = TextureWrapMode.Clamp;
             texture2d.filterMode = FilterMode.Point;
+
+			// Blend functions won't work without our textures starting off cleared
+            var clear = new Color32(255, 255, 255, 0);
+            var clearPixels = Enumerable.Repeat(clear, AseWidth * AseHeight).ToArray();
+            texture2d.SetPixels32(clearPixels);
+            texture2d.Apply();
+
             return texture2d;
         }
 
