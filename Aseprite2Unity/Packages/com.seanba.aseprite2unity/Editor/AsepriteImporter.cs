@@ -176,7 +176,7 @@ namespace Aseprite2Unity.Editor
             // Clear out the render texture
             using (new ScopedRenderTexture(m_FrameRenderTexture))
             {
-                GL.Clear(true, true, new Color(1, 1, 1, 0));
+                GL.Clear(true, true, Color.clear);
             }
 
             m_Frames.Add(frame);
@@ -447,9 +447,8 @@ namespace Aseprite2Unity.Editor
             texture2d.wrapMode = TextureWrapMode.Clamp;
             texture2d.filterMode = FilterMode.Point;
 
-			// Blend functions won't work without our textures starting off cleared
-            var clear = new Color32(255, 255, 255, 0);
-            var clearPixels = Enumerable.Repeat(clear, AseWidth * AseHeight).ToArray();
+            // Blend functions won't work without our textures starting off cleared
+            var clearPixels = Enumerable.Repeat((Color32)Color.clear, AseWidth * AseHeight).ToArray();
             texture2d.SetPixels32(clearPixels);
             texture2d.Apply();
 

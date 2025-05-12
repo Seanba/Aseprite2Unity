@@ -131,10 +131,12 @@ Shader "Hidden/Aseprite2Unity/AsepriteCelBlitter"
                 }
                 if (_BlendMode == ASE_BLEND_MODE_Hue)
                 {
+                    // Todo: Hue doesn't look right
                     return rgba_blender_hsl_hue(background, source, _Opacity);
                 }
                 if (_BlendMode == ASE_BLEND_MODE_Saturation)
                 {
+                    // Todo: Saturation doesn't look right
                     return rgba_blender_hsl_saturation(background, source, _Opacity);
                 }
                 if (_BlendMode == ASE_BLEND_MODE_Color)
