@@ -26,6 +26,9 @@
 // The methods and variables below are made to closely match source C++
 // Order should be similar too. It's not perfect but it does the job.
 
+// Forward declares
+float blend_hard_light(float s, float b);
+
 float3 blend_multiply(float3 b, float3 s)
 {
     return b * s;
@@ -36,9 +39,11 @@ float3 blend_screen(float3 b, float3 s)
     return b + s - b * s;
 }
 
-/*
-public static uint8_t blend_overlay(uint8_t b, uint8_t s) => blend_hard_light(s, b);
-*/
+float blend_overlay(float b, float s)
+{
+    return blend_hard_light(s, b);
+}
+
 float3 blend_darken(float3 b, float3 s)
 {
     return min(b, s);
@@ -49,12 +54,13 @@ float3 blend_lighten(float3 b, float3 s)
     return max(b, s);
 }
 
-/*
-public static uint8_t blend_hard_light(uint8_t b, uint8_t s)
+float blend_hard_light(float b, float s)
 {
-    return s < 128 ? blend_multiply(b, (uint8_t)(s << 1)) : blend_screen(b, (uint8_t)((s << 1) - 255));
+    s = s < 0.5 ? blend_multiply(b, s * 2 ) : blend_screen(b, (2 * s) - 1);
+    return saturate(s);
 }
 
+/*
 public static uint8_t blend_difference(uint8_t b, uint8_t s) => (uint8_t)Math.Abs(b - s);
 
 public static uint8_t blend_exclusion(uint8_t b, uint8_t s)
@@ -158,16 +164,14 @@ float4 rgba_blender_screen(float4 backdrop, float4 src, float opacity)
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
-/*
-public static color_t rgba_blender_overlay(color_t backdrop, color_t src, int opacity)
+float4 rgba_blender_overlay(float4 backdrop, float4 src, float opacity)
 {
-    uint8_t r = blend_overlay(dc.rgba_getr(backdrop), dc.rgba_getr(src));
-    uint8_t g = blend_overlay(dc.rgba_getg(backdrop), dc.rgba_getg(src));
-    uint8_t b = blend_overlay(dc.rgba_getb(backdrop), dc.rgba_getb(src));
-    src = dc.rgba(r, g, b, 0) | (src & dc.rgba_a_mask);
+    float r = blend_overlay(backdrop.r, src.r);
+    float g = blend_overlay(backdrop.g, src.g);
+    float b = blend_overlay(backdrop.b, src.b);
+    src = float4(r, g, b, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
-*/
 
 float4 rgba_blender_darken(float4 backdrop, float4 src, float opacity)
 {
