@@ -324,9 +324,10 @@ void set_sat(inout double _r, inout double _g, inout double _b, double s)
     DoubleRef b;
     b.Value = _b;
 
-    DoubleRef min = REFMIN(r, REFMIN(g, b));
-    DoubleRef mid = REFMID(r, g, b);
-    DoubleRef max = REFMAX(r, REFMAX(g, b));
+    // Todo: this references don't work in shader code. We're changing mid and max values but they don't reference r, g, or b
+    DoubleRef min = REFMIN(r, REFMIN(g, b));    // Is min on r, g, or b?
+    DoubleRef mid = REFMID(r, g, b);            // Is mid on r, g, or b?
+    DoubleRef max = REFMAX(r, REFMAX(g, b));    // Is max on r, b, or b?
 
     if (max.Value > min.Value)
     {
@@ -335,6 +336,7 @@ void set_sat(inout double _r, inout double _g, inout double _b, double s)
     }
     else
     {
+        // If there is not max then everything is zero
         mid.Value = 0;
         max.Value = 0;
     }
