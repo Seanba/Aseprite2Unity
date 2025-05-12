@@ -325,6 +325,7 @@ void set_sat(inout double _r, inout double _g, inout double _b, double s)
     b.Value = _b;
 
     // Todo: this references don't work in shader code. We're changing mid and max values but they don't reference r, g, or b
+    // RGB can be ordered 6 different ways. Just brute force it, I think
     DoubleRef min = REFMIN(r, REFMIN(g, b));    // Is min on r, g, or b?
     DoubleRef mid = REFMID(r, g, b);            // Is mid on r, g, or b?
     DoubleRef max = REFMAX(r, REFMAX(g, b));    // Is max on r, b, or b?
