@@ -66,13 +66,13 @@ float3 blend_difference(float3 b, float3 s)
     return abs(b - s);
 }
 
-/*
-public static uint8_t blend_exclusion(uint8_t b, uint8_t s)
+float blend_exclusion(float b, float s)
 {
-    int t = pc.MUL_UN8(b, s);
-    return (uint8_t)(b + s - 2 * t);
+    float t = b * s;
+    return b + s - 2 * t;
 }
 
+/*
 public static uint8_t blend_divide(uint8_t b, uint8_t s)
 {
     if (b == 0)
@@ -232,18 +232,18 @@ float4 rgba_blender_difference(float4 backdrop, float4 src, float opacity)
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
-/*
-public static color_t rgba_blender_exclusion(color_t backdrop, color_t src, int opacity)
+float4 rgba_blender_exclusion(float4 backdrop, float4 src, float opacity)
 {
-    uint8_t r = blend_exclusion(dc.rgba_getr(backdrop), dc.rgba_getr(src));
-    uint8_t g = blend_exclusion(dc.rgba_getg(backdrop), dc.rgba_getg(src));
-    uint8_t b = blend_exclusion(dc.rgba_getb(backdrop), dc.rgba_getb(src));
-    src = dc.rgba(r, g, b, 0) | (src & dc.rgba_a_mask);
+    float r = blend_exclusion(backdrop.r, src.r);
+    float g = blend_exclusion(backdrop.g, src.g);
+    float b = blend_exclusion(backdrop.b, src.b);
+    src = float4(r, g, b, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
 // HSV blenders
 
+/*
 private static double lum(double r, double g, double b)
 {
     return (0.3 * r) + (0.59 * g) + (0.11 * b);
