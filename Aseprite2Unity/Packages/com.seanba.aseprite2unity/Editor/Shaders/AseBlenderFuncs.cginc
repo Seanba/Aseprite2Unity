@@ -104,26 +104,22 @@ float blend_color_burn(float b, float s)
         return 1 - b/s;
 }
 
-/*
-public static uint8_t blend_soft_light(uint32_t _b, uint32_t _s)
+float blend_soft_light(float b, float s)
 {
-    double b = _b / 255.0;
-    double s = _s / 255.0;
-    double r, d;
+    float r, d;
 
     if (b <= 0.25)
         d = ((16 * b - 12) * b + 4) * b;
     else
-        d = Math.Sqrt(b);
+        d = sqrt(b);
 
     if (s <= 0.5)
         r = b - (1.0 - 2.0 * s) * b * (1.0 - b);
     else
         r = b + (2.0 * s - 1.0) * (d - b);
 
-    return (uint8_t)(r * 255 + 0.5);
+    return saturate(r);
 }
-*/
 
 // RGB blenders
 
@@ -214,16 +210,18 @@ public static color_t rgba_blender_hard_light(color_t backdrop, color_t src, int
     src = dc.rgba(r, g, b, 0) | (src & dc.rgba_a_mask);
     return rgba_blender_normal(backdrop, src, opacity);
 }
+*/
 
-public static color_t rgba_blender_soft_light(color_t backdrop, color_t src, int opacity)
+float4 rgba_blender_soft_light(float4 backdrop, float4 src, float opacity)
 {
-    uint8_t r = blend_soft_light(dc.rgba_getr(backdrop), dc.rgba_getr(src));
-    uint8_t g = blend_soft_light(dc.rgba_getg(backdrop), dc.rgba_getg(src));
-    uint8_t b = blend_soft_light(dc.rgba_getb(backdrop), dc.rgba_getb(src));
-    src = dc.rgba(r, g, b, 0) | (src & dc.rgba_a_mask);
+    float r = blend_soft_light(backdrop.r, src.r);
+    float g = blend_soft_light(backdrop.g, src.g);
+    float b = blend_soft_light(backdrop.b, src.b);
+    src = float4(r, g, b, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
+/*
 public static color_t rgba_blender_difference(color_t backdrop, color_t src, int opacity)
 {
     uint8_t r = blend_difference(dc.rgba_getr(backdrop), dc.rgba_getr(src));

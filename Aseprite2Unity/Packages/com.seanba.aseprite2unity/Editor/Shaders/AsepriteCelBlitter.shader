@@ -104,6 +104,10 @@ Shader "Hidden/Aseprite2Unity/AsepriteCelBlitter"
                 {
                     return rgba_blender_overlay(background, source, _Opacity);
                 }
+                if (_BlendMode == ASE_BLEND_MODE_SoftLight)
+                {
+                    return rgba_blender_soft_light(background, source, _Opacity);
+                }
 
                 // Hotpink if we got to here. We must have some unhandled blend mode.
                 return float4(1, 0, 1, 1);
