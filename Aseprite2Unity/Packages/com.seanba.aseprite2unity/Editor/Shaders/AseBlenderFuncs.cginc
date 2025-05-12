@@ -108,7 +108,7 @@ float blend_color_burn(float b, float s)
 
 float blend_soft_light(float b, float s)
 {
-    float r, d;
+    double r, d;
 
     if (b <= 0.25)
         d = ((16 * b - 12) * b + 4) * b;
@@ -365,26 +365,26 @@ float4 rgba_blender_hsl_hue(float4 backdrop, float4 src, float opacity)
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
-/*
-public static color_t rgba_blender_hsl_saturation(color_t backdrop, color_t src, int opacity)
+float4 rgba_blender_hsl_saturation(float4 backdrop, float4 src, float opacity)
 {
-    double r = dc.rgba_getr(src) / 255.0;
-    double g = dc.rgba_getg(src) / 255.0;
-    double b = dc.rgba_getb(src) / 255.0;
+    double r = src.r;
+    double g = src.g;
+    double b = src.b;
     double s = sat(r, g, b);
 
-    r = dc.rgba_getr(backdrop) / 255.0;
-    g = dc.rgba_getg(backdrop) / 255.0;
-    b = dc.rgba_getb(backdrop) / 255.0;
+    r = backdrop.r;
+    g = backdrop.g;
+    b = backdrop.b;
     double l = lum(r, g, b);
 
-    set_sat(ref r, ref g, ref b, s);
-    set_lum(ref r, ref g, ref b, l);
+    set_sat(r, g, b, s);
+    set_lum(r, g, b, l);
 
-    src = dc.rgba((uint32_t)(255.0 * r), (uint32_t)(255.0 * g), (uint32_t)(255.0 * b), 0) | (src & dc.rgba_a_mask);
+    src = float4(r, g, b, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
+/*
 public static color_t rgba_blender_hsl_color(color_t backdrop, color_t src, int opacity)
 {
     double r = dc.rgba_getr(backdrop) / 255.0;
