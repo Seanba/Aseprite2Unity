@@ -60,9 +60,13 @@ float blend_hard_light(float b, float s)
     return saturate(s);
 }
 
-/*
-public static uint8_t blend_difference(uint8_t b, uint8_t s) => (uint8_t)Math.Abs(b - s);
 
+float3 blend_difference(float3 b, float3 s)
+{
+    return abs(b - s);
+}
+
+/*
 public static uint8_t blend_exclusion(uint8_t b, uint8_t s)
 {
     int t = pc.MUL_UN8(b, s);
@@ -219,16 +223,16 @@ float4 rgba_blender_soft_light(float4 backdrop, float4 src, float opacity)
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
-/*
-public static color_t rgba_blender_difference(color_t backdrop, color_t src, int opacity)
+float4 rgba_blender_difference(float4 backdrop, float4 src, float opacity)
 {
-    uint8_t r = blend_difference(dc.rgba_getr(backdrop), dc.rgba_getr(src));
-    uint8_t g = blend_difference(dc.rgba_getg(backdrop), dc.rgba_getg(src));
-    uint8_t b = blend_difference(dc.rgba_getb(backdrop), dc.rgba_getb(src));
-    src = dc.rgba(r, g, b, 0) | (src & dc.rgba_a_mask);
+    float r = blend_difference(backdrop.r, src.r);
+    float g = blend_difference(backdrop.g, src.g);
+    float b = blend_difference(backdrop.b, src.b);
+    src = float4(r, g, b, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
+/*
 public static color_t rgba_blender_exclusion(color_t backdrop, color_t src, int opacity)
 {
     uint8_t r = blend_exclusion(dc.rgba_getr(backdrop), dc.rgba_getr(src));
