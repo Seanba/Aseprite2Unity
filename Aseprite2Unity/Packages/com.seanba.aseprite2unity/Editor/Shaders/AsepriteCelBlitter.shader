@@ -82,6 +82,10 @@ Shader "Hidden/Aseprite2Unity/AsepriteCelBlitter"
                 {
                     return rgba_blender_screen(background, source, _Opacity);
                 }
+                if (_BlendMode == ASE_BLEND_MODE_ColorDodge)
+                {
+                    return rgba_blender_color_dodge(background, source, _Opacity);
+                }
 
                 return rgba_blender_normal(background, source, _Opacity) * float4(1, 1, 0, 1); // fixit - unsupported blend mode
             }
