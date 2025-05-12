@@ -413,16 +413,14 @@ float4 rgba_blender_addition(float4 backdrop, float4 src, float opacity)
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
-/*
-public static color_t rgba_blender_subtract(color_t backdrop, color_t src, int opacity)
+float4 rgba_blender_subtract(float4 backdrop, float4 src, float opacity)
 {
-    int r = dc.rgba_getr(backdrop) - dc.rgba_getr(src);
-    int g = dc.rgba_getg(backdrop) - dc.rgba_getg(src);
-    int b = dc.rgba_getb(backdrop) - dc.rgba_getb(src);
-    src = dc.rgba((uint8_t)Math.Max(r, 0), (uint8_t)Math.Max(g, 0), (uint8_t)Math.Max(b, 0), 0) | (src & dc.rgba_a_mask);
+    float3 rgb = saturate(backdrop.rgb - src.rgb);
+    src = float4(rgb, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
+/*
 public static color_t rgba_blender_divide(color_t backdrop, color_t src, int opacity)
 {
     uint8_t r = blend_divide(dc.rgba_getr(backdrop), dc.rgba_getr(src));
