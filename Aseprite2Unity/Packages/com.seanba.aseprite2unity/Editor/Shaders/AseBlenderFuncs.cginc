@@ -108,7 +108,7 @@ float blend_color_burn(float b, float s)
 
 float blend_soft_light(float b, float s)
 {
-    double r, d;
+    float r, d;
 
     if (b <= 0.25)
         d = ((16 * b - 12) * b + 4) * b;
@@ -241,21 +241,21 @@ float4 rgba_blender_exclusion(float4 backdrop, float4 src, float opacity)
 
 // HSV blenders
 
-double lum(double r, double g, double b)
+float lum(float r, float g, float b)
 {
     return (0.3 * r) + (0.59 * g) + (0.11 * b);
 }
 
-double sat(double r, double g, double b)
+float sat(float r, float g, float b)
 {
     return max(r, max(g, b)) - min(r, min(g, b));
 }
 
-void clip_color(inout double r, inout double g, inout double b)
+void clip_color(inout float r, inout float g, inout float b)
 {
-    double l = lum(r, g, b);
-    double n = min(r, min(g, b));
-    double x = max(r, max(g, b));
+    float l = lum(r, g, b);
+    float n = min(r, min(g, b));
+    float x = max(r, max(g, b));
 
     if (n < 0)
     {
@@ -272,9 +272,9 @@ void clip_color(inout double r, inout double g, inout double b)
     }
 }
 
-void set_lum(inout double r, inout double g, inout double b, double l)
+void set_lum(inout float r, inout float g, inout float b, float l)
 {
-    double d = l - lum(r, g, b);
+    float d = l - lum(r, g, b);
     r = r + d;
     g = g + d;
     b = b + d;
@@ -282,80 +282,123 @@ void set_lum(inout double r, inout double g, inout double b, double l)
 }
 
 // This stuff is such a dirty hack for the set_sat function
-struct DoubleRef
-{
-    double Value;
-};
+//struct DoubleRef
+//{
+//    double Value;
+//};
 
 
-DoubleRef REFMIN(DoubleRef x, DoubleRef y)
+//DoubleRef REFMIN(DoubleRef x, DoubleRef y)
+//{
+//    if (x.Value < y.Value)
+//    {
+//        return x;
+//    }
+
+//    return y;
+//}
+
+//DoubleRef REFMAX(DoubleRef x, DoubleRef y)
+//{
+//    if (x.Value > y.Value)
+//    {
+//        return x;
+//    }
+
+//    return y;
+//}
+
+//DoubleRef REFMID(DoubleRef x, DoubleRef y, DoubleRef z)
+//{
+//    return REFMAX(x, REFMIN(y, z));
+//}
+
+// Assumes xyz are ordered from max, mid, min
+float3 saturation_xyz(float3 values, float s)
 {
-    if (x.Value < y.Value)
+    // Formula reference
+    //if (max.Value > min.Value)
+    //{
+    //    mid.Value = ((mid.Value - min.Value) * s) / (max.Value - min.Value);
+    //    max.Value = s;
+    //}
+    //else
+    //{
+    //    // If there is no max then everything is zero
+    //    mid.Value = 0;
+    //    max.Value = 0;
+    //}
+
+    //min.Value = 0;
+
+    float3 saturated = float3(0, 0, 0);
+    if (values.x > values.z)
     {
-        return x;
+        saturated.y = ((values.y - values.z) * s) / (values.x - values.z);
+        saturated.x = s;
     }
 
-    return y;
+    return saturated;
 }
 
-DoubleRef REFMAX(DoubleRef x, DoubleRef y)
+void set_sat(inout float r, inout float g, inout float b, float s)
 {
-    if (x.Value > y.Value)
+    float3 rgb = float3(r, b, g);
+    float3 saturated = float3(0, 0, 0);
+
+    float x = r;
+    float y = g;
+    float z = b;
+
+    if (x <= y && x <= z)
     {
-        return x;
+        // x is smallest
+        if (y <= z)
+        {
+            saturated.zyx = saturation_xyz(rgb.zyx, s);
+        }
+        else
+        {
+            saturated.yzx = saturation_xyz(rgb.yzx, s);
+        }
     }
-
-    return y;
-}
-
-DoubleRef REFMID(DoubleRef x, DoubleRef y, DoubleRef z)
-{
-    return REFMAX(x, REFMIN(y, z));
-}
-
-void set_sat(inout double _r, inout double _g, inout double _b, double s)
-{
-    DoubleRef r;
-    r.Value = _r;
-
-    DoubleRef g;
-    g.Value = _g;
-
-    DoubleRef b;
-    b.Value = _b;
-
-    // Todo: this references don't work in shader code. We're changing mid and max values but they don't reference r, g, or b
-    // RGB can be ordered 6 different ways. Just brute force it, I think
-    DoubleRef min = REFMIN(r, REFMIN(g, b));    // Is min on r, g, or b?
-    DoubleRef mid = REFMID(r, g, b);            // Is mid on r, g, or b?
-    DoubleRef max = REFMAX(r, REFMAX(g, b));    // Is max on r, b, or b?
-
-    if (max.Value > min.Value)
+    else if (y <= x && y <= z)
     {
-        mid.Value = ((mid.Value - min.Value) * s) / (max.Value - min.Value);
-        max.Value = s;
+        // y is smallest
+        if (x <= z)
+        {
+            saturated.zxy = saturation_xyz(rgb.zxy, s);
+        } 
+        else
+        {
+            saturated.xzy = saturation_xyz(rgb.xzy, s);
+        }
     }
     else
     {
-        // If there is no max then everything is zero
-        mid.Value = 0;
-        max.Value = 0;
+        // z is smallest
+        if (x <= y)
+        {
+            saturated.yxz = saturation_xyz(rgb.yxz, s);
+        }
+        else
+        {
+            saturated.xyz = saturation_xyz(rgb.xyz, s);
+        }
     }
 
-    min.Value = 0;
-
-    _r = r.Value;
-    _g = g.Value;
-    _b = b.Value;
+    r = saturated.x;
+    g = saturated.y;
+    b = saturated.z;
 }
 
 float4 rgba_blender_hsl_hue(float4 backdrop, float4 src, float opacity)
 {
-    double r = backdrop.r;
-    double g = backdrop.g;
-    double b = backdrop.b;
-    double s = sat(r, g, b);
-    double l = lum(r, g, b);
+    float r = backdrop.r;
+    float g = backdrop.g;
+    float b = backdrop.b;
+    float s = sat(r, g, b);
+    float l = lum(r, g, b);
 
     r = src.r;
     g = src.g;
@@ -370,15 +413,15 @@ float4 rgba_blender_hsl_hue(float4 backdrop, float4 src, float opacity)
 
 float4 rgba_blender_hsl_saturation(float4 backdrop, float4 src, float opacity)
 {
-    double r = src.r;
-    double g = src.g;
-    double b = src.b;
-    double s = sat(r, g, b);
+    float r = src.r;
+    float g = src.g;
+    float b = src.b;
+    float s = sat(r, g, b);
 
     r = backdrop.r;
     g = backdrop.g;
     b = backdrop.b;
-    double l = lum(r, g, b);
+    float l = lum(r, g, b);
 
     set_sat(r, g, b, s);
     set_lum(r, g, b, l);
@@ -389,10 +432,10 @@ float4 rgba_blender_hsl_saturation(float4 backdrop, float4 src, float opacity)
 
 float4 rgba_blender_hsl_color(float4 backdrop, float4 src, float opacity)
 {
-    double r = backdrop.r;
-    double g = backdrop.g;
-    double b = backdrop.b;
-    double l = lum(r, g, b);
+    float r = backdrop.r;
+    float g = backdrop.g;
+    float b = backdrop.b;
+    float l = lum(r, g, b);
 
     r = src.r;
     g = src.g;
@@ -406,10 +449,10 @@ float4 rgba_blender_hsl_color(float4 backdrop, float4 src, float opacity)
 
 float4 rgba_blender_hsl_luminosity(float4 backdrop, float4 src, float opacity)
 {
-    double r = src.r;
-    double g = src.g;
-    double b = src.b;
-    double l = lum(r, g, b);
+    float r = src.r;
+    float g = src.g;
+    float b = src.b;
+    float l = lum(r, g, b);
 
     r = backdrop.r;
     g = backdrop.g;
