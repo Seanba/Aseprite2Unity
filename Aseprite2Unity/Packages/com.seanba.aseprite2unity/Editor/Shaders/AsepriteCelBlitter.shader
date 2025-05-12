@@ -124,7 +124,12 @@ Shader "Hidden/Aseprite2Unity/AsepriteCelBlitter"
                 {
                     return rgba_blender_subtract(background, source, _Opacity);
                 }
+                if (_BlendMode == ASE_BLEND_MODE_Divide)
+                {
+                    return rgba_blender_divide(background, source, _Opacity);
+                }
 
+                // The HSL blend modes are not yet supported. They're a terrible PITA and does anyone even use them?
                 // Hotpink if we got to here. We must have some unhandled blend mode.
                 return float4(1, 0, 1, 1);
             }

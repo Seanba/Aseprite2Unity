@@ -72,17 +72,15 @@ float blend_exclusion(float b, float s)
     return b + s - 2 * t;
 }
 
-/*
-public static uint8_t blend_divide(uint8_t b, uint8_t s)
+float blend_divide(float b, float s)
 {
     if (b == 0)
         return 0;
     else if (b >= s)
-        return 255;
+        return 1;
     else
-        return pc.DIV_UN8(b, s); // return b / s
+        return b / s;
 }
-*/
 
 float blend_color_dodge(float b, float s)
 {
@@ -420,15 +418,13 @@ float4 rgba_blender_subtract(float4 backdrop, float4 src, float opacity)
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
-/*
-public static color_t rgba_blender_divide(color_t backdrop, color_t src, int opacity)
+float4 rgba_blender_divide(float4 backdrop, float4 src, float opacity)
 {
-    uint8_t r = blend_divide(dc.rgba_getr(backdrop), dc.rgba_getr(src));
-    uint8_t g = blend_divide(dc.rgba_getg(backdrop), dc.rgba_getg(src));
-    uint8_t b = blend_divide(dc.rgba_getb(backdrop), dc.rgba_getb(src));
-    src = dc.rgba(r, g, b, 0) | (src & dc.rgba_a_mask);
+    float r = blend_divide(backdrop.r, src.r);
+    float g = blend_divide(backdrop.g, src.g);
+    float b = blend_divide(backdrop.b, src.b);
+    src = float4(r, g, b, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
-*/
 
 #endif
