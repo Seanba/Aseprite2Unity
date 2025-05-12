@@ -18,6 +18,7 @@ Shader "Hidden/Aseprite2Unity/AsepriteCelBlitter"
             Blend Off
 
             CGPROGRAM
+            #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -127,6 +128,10 @@ Shader "Hidden/Aseprite2Unity/AsepriteCelBlitter"
                 if (_BlendMode == ASE_BLEND_MODE_Divide)
                 {
                     return rgba_blender_divide(background, source, _Opacity);
+                }
+                if (_BlendMode == ASE_BLEND_MODE_Hue)
+                {
+                    return rgba_blender_hsl_hue(background, source, _Opacity);
                 }
 
                 // The HSL blend modes are not yet supported. They're a terrible PITA and does anyone even use them?

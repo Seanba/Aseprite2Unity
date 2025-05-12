@@ -272,16 +272,14 @@ void clip_color(inout double r, inout double g, inout double b)
     }
 }
 
-/*
-private static void set_lum(ref double r, ref double g, ref double b, double l)
+void set_lum(inout double r, inout double g, inout double b, double l)
 {
     double d = l - lum(r, g, b);
     r = r + d;
     g = g + d;
     b = b + d;
-    clip_color(ref r, ref g, ref b);
+    clip_color(r, g, b);
 }
-*/
 
 // This stuff is such a dirty hack for the set_sat function
 struct DoubleRef
@@ -315,12 +313,16 @@ DoubleRef REFMID(DoubleRef x, DoubleRef y, DoubleRef z)
     return REFMAX(x, REFMIN(y, z));
 }
 
-/*
-private static void set_sat(ref double _r, ref double _g, ref double _b, double s)
+void set_sat(inout double _r, inout double _g, inout double _b, double s)
 {
-    DoubleRef r = new DoubleRef { Value = _r };
-    DoubleRef g = new DoubleRef { Value = _g };
-    DoubleRef b = new DoubleRef { Value = _b };
+    DoubleRef r;
+    r.Value = _r;
+
+    DoubleRef g;
+    g.Value = _g;
+
+    DoubleRef b;
+    b.Value = _b;
 
     DoubleRef min = REFMIN(r, REFMIN(g, b));
     DoubleRef mid = REFMID(r, g, b);
@@ -344,25 +346,26 @@ private static void set_sat(ref double _r, ref double _g, ref double _b, double 
     _b = b.Value;
 }
 
-public static color_t rgba_blender_hsl_hue(color_t backdrop, color_t src, int opacity)
+float4 rgba_blender_hsl_hue(float4 backdrop, float4 src, float opacity)
 {
-    double r = dc.rgba_getr(backdrop) / 255.0;
-    double g = dc.rgba_getg(backdrop) / 255.0;
-    double b = dc.rgba_getb(backdrop) / 255.0;
+    double r = backdrop.r;
+    double g = backdrop.g;
+    double b = backdrop.b;
     double s = sat(r, g, b);
     double l = lum(r, g, b);
 
-    r = dc.rgba_getr(src) / 255.0;
-    g = dc.rgba_getg(src) / 255.0;
-    b = dc.rgba_getb(src) / 255.0;
+    r = src.r;
+    g = src.g;
+    b = src.b;
 
-    set_sat(ref r, ref g, ref b, s);
-    set_lum(ref r, ref g, ref b, l);
+    set_sat(r, g, b, s);
+    set_lum(r, g, b, l);
 
-    src = dc.rgba((uint32_t)(255.0 * r), (uint32_t)(255.0 * g), (uint32_t)(255.0 * b), 0) | (src & dc.rgba_a_mask);
+    src = float4(r, g, b, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
+/*
 public static color_t rgba_blender_hsl_saturation(color_t backdrop, color_t src, int opacity)
 {
     double r = dc.rgba_getr(src) / 255.0;
