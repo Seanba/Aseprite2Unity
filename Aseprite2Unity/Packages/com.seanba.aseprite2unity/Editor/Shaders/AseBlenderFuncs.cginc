@@ -336,7 +336,7 @@ void set_sat(inout double _r, inout double _g, inout double _b, double s)
     }
     else
     {
-        // If there is not max then everything is zero
+        // If there is no max then everything is zero
         mid.Value = 0;
         max.Value = 0;
     }
