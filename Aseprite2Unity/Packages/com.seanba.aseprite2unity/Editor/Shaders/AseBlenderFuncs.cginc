@@ -201,16 +201,14 @@ float4 rgba_blender_color_burn(float4 backdrop, float4 src, float opacity)
     return rgba_blender_normal(backdrop, src, opacity);
 }
 
-/*
-public static color_t rgba_blender_hard_light(color_t backdrop, color_t src, int opacity)
+float4 rgba_blender_hard_light(float4 backdrop, float4 src, float opacity)
 {
-    uint8_t r = blend_hard_light(dc.rgba_getr(backdrop), dc.rgba_getr(src));
-    uint8_t g = blend_hard_light(dc.rgba_getg(backdrop), dc.rgba_getg(src));
-    uint8_t b = blend_hard_light(dc.rgba_getb(backdrop), dc.rgba_getb(src));
-    src = dc.rgba(r, g, b, 0) | (src & dc.rgba_a_mask);
+    float r = blend_hard_light(backdrop.r, src.r);
+    float g = blend_hard_light(backdrop.g, src.g);
+    float b = blend_hard_light(backdrop.b, src.b);
+    src = float4(r, g, b, src.a);
     return rgba_blender_normal(backdrop, src, opacity);
 }
-*/
 
 float4 rgba_blender_soft_light(float4 backdrop, float4 src, float opacity)
 {
