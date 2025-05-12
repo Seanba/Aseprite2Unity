@@ -241,22 +241,21 @@ float4 rgba_blender_exclusion(float4 backdrop, float4 src, float opacity)
 
 // HSV blenders
 
-/*
-private static double lum(double r, double g, double b)
+double lum(double r, double g, double b)
 {
     return (0.3 * r) + (0.59 * g) + (0.11 * b);
 }
 
-private static double sat(double r, double g, double b)
+double sat(double r, double g, double b)
 {
-    return Math.Max(r, Math.Max(g, b)) - Math.Min(r, Math.Min(g, b));
+    return max(r, max(g, b)) - min(r, min(g, b));
 }
 
-private static void clip_color(ref double r, ref double g, ref double b)
+void clip_color(inout double r, inout double g, inout double b)
 {
     double l = lum(r, g, b);
-    double n = Math.Min(r, Math.Min(g, b));
-    double x = Math.Max(r, Math.Max(g, b));
+    double n = min(r, min(g, b));
+    double x = max(r, max(g, b));
 
     if (n < 0)
     {
@@ -273,6 +272,7 @@ private static void clip_color(ref double r, ref double g, ref double b)
     }
 }
 
+/*
 private static void set_lum(ref double r, ref double g, ref double b, double l)
 {
     double d = l - lum(r, g, b);
@@ -281,28 +281,41 @@ private static void set_lum(ref double r, ref double g, ref double b, double l)
     b = b + d;
     clip_color(ref r, ref g, ref b);
 }
+*/
 
 // This stuff is such a dirty hack for the set_sat function
-private class DoubleRef
+struct DoubleRef
 {
-    public double Value { get; set; }
+    double Value;
+};
+
+
+DoubleRef REFMIN(DoubleRef x, DoubleRef y)
+{
+    if (x.Value < y.Value)
+    {
+        return x;
+    }
+
+    return y;
 }
 
-private static DoubleRef REFMIN(DoubleRef x, DoubleRef y)
+DoubleRef REFMAX(DoubleRef x, DoubleRef y)
 {
-    return x.Value < y.Value ? x : y;
+    if (x.Value > y.Value)
+    {
+        return x;
+    }
+
+    return y;
 }
 
-private static DoubleRef REFMAX(DoubleRef x, DoubleRef y)
-{
-    return x.Value > y.Value ? x : y;
-}
-
-private static DoubleRef REFMID(DoubleRef x, DoubleRef y, DoubleRef z)
+DoubleRef REFMID(DoubleRef x, DoubleRef y, DoubleRef z)
 {
     return REFMAX(x, REFMIN(y, z));
 }
 
+/*
 private static void set_sat(ref double _r, ref double _g, ref double _b, double s)
 {
     DoubleRef r = new DoubleRef { Value = _r };
