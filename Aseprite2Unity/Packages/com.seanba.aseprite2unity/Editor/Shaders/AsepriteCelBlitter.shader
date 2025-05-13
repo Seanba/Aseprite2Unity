@@ -18,6 +18,7 @@ Shader "Hidden/Aseprite2Unity/AsepriteCelBlitter"
             Blend Off
 
             CGPROGRAM
+            #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -135,7 +136,6 @@ Shader "Hidden/Aseprite2Unity/AsepriteCelBlitter"
                 }
                 if (_BlendMode == ASE_BLEND_MODE_Saturation)
                 {
-                    // Todo: Saturation doesn't look right
                     return rgba_blender_hsl_saturation(background, source, _Opacity);
                 }
                 if (_BlendMode == ASE_BLEND_MODE_Color)

@@ -313,8 +313,8 @@ void set_lum(inout float r, inout float g, inout float b, float l)
 //    return REFMAX(x, REFMIN(y, z));
 //}
 
-// Assumes xyz are ordered from max, mid, min
-float3 saturation_xyz(float3 values, float s)
+// Assumes v.xyz are ordered from max, mid, min
+float3 set_ordered_sat(float3 v, float s)
 {
     // Formula reference
     //if (max.Value > min.Value)
@@ -328,68 +328,57 @@ float3 saturation_xyz(float3 values, float s)
     //    mid.Value = 0;
     //    max.Value = 0;
     //}
-
     //min.Value = 0;
 
     float3 saturated = float3(0, 0, 0);
-    if (values.x > values.z)
+    if (v.x > v.z)
     {
-        saturated.y = ((values.y - values.z) * s) / (values.x - values.z);
+        saturated.y = ((v.y - v.z) * s) / (v.x - v.z);
         saturated.x = s;
     }
 
     return saturated;
 }
 
-void set_sat(inout float r, inout float g, inout float b, float s)
+bool IsMaxMidMin(float a, float b, float c)
 {
-    float3 rgb = float3(r, b, g);
-    float3 saturated = float3(0, 0, 0);
+    return (a >= b) && (b >= c);
+}
 
-    float x = r;
-    float y = g;
-    float z = b;
+float3 set_sat(float3 v, float s)
+{
+    float3 sat = v;
 
-    if (x <= y && x <= z)
+    if (IsMaxMidMin(v.x, v.y, v.z))
     {
-        // x is smallest
-        if (y <= z)
-        {
-            saturated.zyx = saturation_xyz(rgb.zyx, s);
-        }
-        else
-        {
-            saturated.yzx = saturation_xyz(rgb.yzx, s);
-        }
+        sat.xyz = set_ordered_sat(v.xyz, s);
     }
-    else if (y <= x && y <= z)
+    else if (IsMaxMidMin(v.x, v.z, v.y))
     {
-        // y is smallest
-        if (x <= z)
-        {
-            saturated.zxy = saturation_xyz(rgb.zxy, s);
-        } 
-        else
-        {
-            saturated.xzy = saturation_xyz(rgb.xzy, s);
-        }
+        sat.xzy = set_ordered_sat(v.xzy, s);
+    }
+    else if (IsMaxMidMin(v.y, v.z, v.x))
+    {
+        sat.yzx = set_ordered_sat(v.yzx, s);
+    }
+    else if (IsMaxMidMin(v.y, v.x, v.z))
+    {
+        sat.yxz = set_ordered_sat(v.yxz, s);
+    }
+    else if (IsMaxMidMin(v.z, v.x, v.y))
+    {
+        sat.zxy = set_ordered_sat(v.zxy, s);
+    }
+    else if (IsMaxMidMin(v.z, v.y, v.x))
+    {
+        sat.zyx = set_ordered_sat(v.zyx, s);
     }
     else
     {
-        // z is smallest
-        if (x <= y)
-        {
-            saturated.yxz = saturation_xyz(rgb.yxz, s);
-        }
-        else
-        {
-            saturated.xyz = saturation_xyz(rgb.xyz, s);
-        }
+        sat = float3(1, 0, 1);
     }
 
-    r = saturated.x;
-    g = saturated.y;
-    b = saturated.z;
+    return sat;
 }
 
 float4 rgba_blender_hsl_hue(float4 backdrop, float4 src, float opacity)
@@ -400,11 +389,11 @@ float4 rgba_blender_hsl_hue(float4 backdrop, float4 src, float opacity)
     float s = sat(r, g, b);
     float l = lum(r, g, b);
 
+    src.rgb = set_sat(src.rgb, s);
+
     r = src.r;
     g = src.g;
     b = src.b;
-
-    set_sat(r, g, b, s);
     set_lum(r, g, b, l);
 
     src = float4(r, g, b, src.a);
@@ -423,7 +412,11 @@ float4 rgba_blender_hsl_saturation(float4 backdrop, float4 src, float opacity)
     b = backdrop.b;
     float l = lum(r, g, b);
 
-    set_sat(r, g, b, s);
+    src.rgb = set_sat(float3(r, g, b), s);
+
+    r = src.r;
+    g = src.g;
+    b = src.b;
     set_lum(r, g, b, l);
 
     src = float4(r, g, b, src.a);
