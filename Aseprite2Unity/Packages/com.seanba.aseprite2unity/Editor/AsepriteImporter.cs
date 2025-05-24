@@ -91,6 +91,9 @@ namespace Aseprite2Unity.Editor
             {
                 m_AseFile = new AseFile(reader);
                 m_AseFile.VisitContents(this);
+
+                AseUnityObjects aseUnityObjects = new AseUnityObjects();
+                m_AseFile.VisitContents(aseUnityObjects);
             }
 #else
             string msg = string.Format("Aesprite2Unity requires Unity 2020.3 or later. You are using {0}", Application.unityVersion);
@@ -155,7 +158,6 @@ namespace Aseprite2Unity.Editor
                 animator.cullingMode = m_AnimatorCullingMode;
             }
 
-            m_AseFile = null;
             m_Context = null;
             m_Palette.Clear();
             m_Layers.Clear();
