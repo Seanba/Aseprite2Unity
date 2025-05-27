@@ -12,7 +12,10 @@ namespace Aseprite2Unity.Editor
 
             switch (type)
             {
-                // Chunk types we care about
+                case ChunkType.OldPalette:
+                    chunk = new AseOldPaletteChunk(frame, reader); // fixit - add this to visitor
+                    break;
+
                 case ChunkType.Palette:
                     chunk = new AsePaletteChunk(frame, reader);
                     break;
@@ -45,17 +48,14 @@ namespace Aseprite2Unity.Editor
                     chunk = new AseTilesetChunk(frame, reader);
                     break;
 
-                // Chunk types we don't care about
-                case ChunkType.OldPalette:
-                    chunk = new AseDummyChunk(frame, reader, type, size);
-                    break;
-
                 // Chunk types we haven't handled yet. Indicates a bug that should be fixed.
                 default:
                     chunk = new AseDummyChunk(frame, reader, type, size);
                     Debug.LogErrorFormat("Unhandled chunk type: {0}", ((ushort)type).ToString("X4"));
                     break;
             }
+
+            Debug.LogWarningFormat("fixit chunk type: {0}", ((ushort)type).ToString("X4"));
 
             // Check that we read the right amount of bytes
             Assert.IsTrue((reader.Position - pos) == size, string.Format("Chunk {0} read {1} bytes but we were expecting {2} bytes read", type, reader.Position - pos, size));

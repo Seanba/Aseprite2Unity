@@ -7,6 +7,7 @@ namespace Aseprite2Unity.Editor
     {
         public AseHeader Header { get; }
         public List<AseFrame> Frames { get; }
+        // fixit - add palette data here?
 
         public AseFile(AseReader reader)
         {

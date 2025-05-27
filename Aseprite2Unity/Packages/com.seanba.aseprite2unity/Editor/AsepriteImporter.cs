@@ -90,10 +90,20 @@ namespace Aseprite2Unity.Editor
             using (var reader = new AseReader(m_Context.assetPath))
             {
                 m_AseFile = new AseFile(reader);
-                m_AseFile.VisitContents(this);
+                //m_AseFile.VisitContents(this); // fixit - don't do this while testing
 
-                AseUnityObjects aseUnityObjects = new AseUnityObjects();
-                m_AseFile.VisitContents(aseUnityObjects);
+                using (var aseUnityObjects = new AseUnityObjects())
+                {
+                    m_AseFile.VisitContents(aseUnityObjects);
+
+                    var textures = aseUnityObjects.FetchFrameTextures().ToArray();
+                    for (int i = 0; i < textures.Length; i++)
+                    {
+                        var texture = textures[i];
+                        texture.name = $"AseObjectTexture.{i}";
+                        m_Context.AddObjectToAsset(texture.name, texture);
+                    }
+                }
             }
 #else
             string msg = string.Format("Aesprite2Unity requires Unity 2020.3 or later. You are using {0}", Application.unityVersion);
@@ -158,7 +168,6 @@ namespace Aseprite2Unity.Editor
                 animator.cullingMode = m_AnimatorCullingMode;
             }
 
-            m_Context = null;
             m_Palette.Clear();
             m_Layers.Clear();
             m_Frames.Clear();
@@ -292,6 +301,10 @@ namespace Aseprite2Unity.Editor
         public void VisitLayerChunk(AseLayerChunk layer)
         {
             m_Layers.Add(layer);
+        }
+
+        public void VisitOldPaletteChunk(AseOldPaletteChunk palette)
+        {
         }
 
         public void VisitPaletteChunk(AsePaletteChunk palette)

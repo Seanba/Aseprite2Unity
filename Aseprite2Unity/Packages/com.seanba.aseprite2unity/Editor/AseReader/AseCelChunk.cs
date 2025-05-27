@@ -72,7 +72,7 @@ namespace Aseprite2Unity.Editor
 
                 var bytesRead = reader.Position - pos;
                 var compressed = reader.ReadBYTEs(size - bytesRead);
-                PixelBytes = ZlibDeflate(compressed);
+                PixelBytes = ZlibDeflate(compressed); // fixit - can we resolve pixels to RGBAs here (including palettes?)
             }
             else if (CelType == CelType.CompressedTilemap)
             {
