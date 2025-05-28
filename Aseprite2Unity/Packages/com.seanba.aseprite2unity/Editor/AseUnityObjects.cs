@@ -13,6 +13,7 @@ namespace Aseprite2Unity.Editor
         public int CanvasWidth => m_AseFile.Header.Width;
         public int CanvasHeight => m_AseFile.Header.Height;
         public ColorDepth ColorDepth => m_AseFile.Header.ColorDepth;
+        public int TransparentIndex => m_AseFile.Header.TransparentIndex;
 
         private AseFile m_AseFile;
         private readonly Stack<AseCanvas> m_FrameCanvases = new Stack<AseCanvas>(); // fixit - not sure this should be a stack now
@@ -76,9 +77,34 @@ namespace Aseprite2Unity.Editor
                 cel = cel.LinkedCel;
             }
 
-            Color32 GetPixel(int x, int y, byte[] pixelBytes, ColorDepth depth, int stride)
+            static Color32 GetPixel(int x, int y, byte[] pixelBytes, ColorDepth depth, int stride, List<Color32> palette)
             {
-                return Color.red;
+                if (depth == ColorDepth.Indexed8)
+                {
+                    var index = x + (y * stride);
+                    int paletteIndex = pixelBytes[index];
+                    var color = palette[paletteIndex];
+                    return color;
+                }
+                else if (depth == ColorDepth.Grayscale16)
+                {
+                    var index = 2 * (x + (y * stride));
+                    var value = pixelBytes[index];
+                    var alpha = pixelBytes[index + 1];
+                    return new Color32(value, value, value, alpha);
+                }
+                else if (depth == ColorDepth.RGBA32)
+                {
+                    var index = 4 * (x + (y * stride));
+                    var red = pixelBytes[index];
+                    var green = pixelBytes[index + 1];
+                    var blue = pixelBytes[index + 2];
+                    var alpha = pixelBytes[index + 3];
+                    return new Color32(red, green, blue, alpha);
+                }
+
+                // Unsupported color depth
+                return Color.magenta;
             }
 
             // fixit - test grayscale images
@@ -104,11 +130,14 @@ namespace Aseprite2Unity.Editor
                     {
                         for (int y = 0; y < cel.Height; y++)
                         {
-                            Color32 pixelColor = GetPixel(x, y, cel.PixelBytes, ColorDepth, cel.Width);
-                            int cx = cel.PositionX + x;
-                            int cy = cel.PositionY + y;
-                            int index = cx + (cy * cel.Width);
-                            canvasPixels[index] = pixelColor;
+                            Color32 pixelColor = GetPixel(x, y, cel.PixelBytes, ColorDepth, cel.Width, m_Palette);
+                            if (pixelColor.a > 0)
+                            {
+                                int cx = cel.PositionX + x;
+                                int cy = cel.PositionY + y;
+                                int index = cx + (cy * canvas.Width);
+                                canvasPixels[index] = pixelColor;
+                            }
                         }
                     }
                 }
@@ -129,6 +158,7 @@ namespace Aseprite2Unity.Editor
         {
             m_Palette.Clear();
             m_Palette.AddRange(palette.Colors.Select(c => new Color32(c.red, c.green, c.blue, 255)));
+            m_Palette[TransparentIndex] = Color.clear;
         }
 
         public void VisitPaletteChunk(AsePaletteChunk palette)
