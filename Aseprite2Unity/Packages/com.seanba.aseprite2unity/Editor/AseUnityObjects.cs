@@ -77,7 +77,7 @@ namespace Aseprite2Unity.Editor
                 cel = cel.LinkedCel;
             }
 
-            static Color32 GetPixel(int x, int y, byte[] pixelBytes, ColorDepth depth, int stride, List<Color32> palette)
+            static Color32 GetPixel(int x, int y, byte[] pixelBytes, ColorDepth depth, int stride, List<Color32> palette) // fixit - helper function
             {
                 if (depth == ColorDepth.Indexed8)
                 {
@@ -108,18 +108,12 @@ namespace Aseprite2Unity.Editor
             }
 
             // fixit - test grayscale images
-            // fixit - test palette images
             // fixit - test raw image data
             // fixit - test tiles
+            // fixit - do the blends
+            // fixit - use opacity
             if (cel.CelType == CelType.CompressedImage)
             {
-                // fixit:left off here
-                //cel.PositionX;
-                //cel.PositionY;
-                //cel.Width
-                //cel.Height;
-                //cel.PixelBytes
-                // cel.Opacity
                 // Get the pixels from this cel and blend them into the canvas for this frame
                 unsafe
                 {

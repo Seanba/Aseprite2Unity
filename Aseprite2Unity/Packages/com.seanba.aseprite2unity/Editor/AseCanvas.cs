@@ -27,7 +27,7 @@ namespace Aseprite2Unity.Editor
             texture2d.alphaIsTransparency = true;
 
             texture2d.SetPixels32(Pixels.ToArray(), 0);
-            texture2d.Apply(false, true);
+            texture2d.Apply();
 
             return texture2d;
         }

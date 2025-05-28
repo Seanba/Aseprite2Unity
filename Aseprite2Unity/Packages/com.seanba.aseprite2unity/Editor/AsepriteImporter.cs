@@ -47,7 +47,7 @@ namespace Aseprite2Unity.Editor
         private List<string> m_Errors = new List<string>();
         public IEnumerable<string> Errors { get { return m_Errors; } }
 
-        // Helper classes
+        // Helper classes // fixit - do we need these helper classes?
         private class ScopedRenderTexture : IDisposable
         {
             private readonly RenderTexture m_OldRenderTexture;
@@ -96,13 +96,28 @@ namespace Aseprite2Unity.Editor
                 {
                     m_AseFile.VisitContents(aseUnityObjects);
 
+                    // Texture is upside down. Use a Graphics.Blit to fix that instead of fixing all the places where Aseprite touches pixel data.
+                    var renderTexture = new RenderTexture(AseWidth, AseHeight, 0, RenderTextureFormat.ARGB32, 0);
+                    renderTexture.wrapMode = TextureWrapMode.Clamp;
+                    renderTexture.filterMode = FilterMode.Point;
+                    RenderTexture oldRenderTexture = RenderTexture.active;
+                    RenderTexture.active = renderTexture;
+
                     var textures = aseUnityObjects.FetchFrameTextures().ToArray();
                     for (int i = 0; i < textures.Length; i++)
                     {
                         var texture = textures[i];
+
+                        Graphics.Blit(texture, renderTexture, new Vector2(1, -1), new Vector2(0, 1));
+                        texture.ReadPixels(new Rect(0, 0, AseWidth, AseHeight), 0, 0);
+                        texture.Apply(false, true);
+
                         texture.name = $"AseObjectTexture.{i}";
                         m_Context.AddObjectToAsset(texture.name, texture);
+                        m_Context.SetMainObject(texture);
                     }
+
+                    RenderTexture.active = oldRenderTexture;
                 }
             }
 #else
