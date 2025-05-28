@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 namespace Aseprite2Unity.Editor
@@ -14,7 +15,7 @@ namespace Aseprite2Unity.Editor
         public ColorDepth ColorDepth => m_AseFile.Header.ColorDepth;
 
         private AseFile m_AseFile;
-        private readonly Stack<AseCanvas> m_FrameCanvases = new Stack<AseCanvas>();
+        private readonly Stack<AseCanvas> m_FrameCanvases = new Stack<AseCanvas>(); // fixit - not sure this should be a stack now
         private readonly List<AseLayerChunk> m_LayerChunks = new List<AseLayerChunk>();
         private readonly List<Color32> m_Palette = new List<Color32>();
 
@@ -58,20 +59,26 @@ namespace Aseprite2Unity.Editor
 
         public void VisitLayerChunk(AseLayerChunk layer)
         {
-            ReportCallerMemberName();
-
             m_LayerChunks.Add(layer);
         }
 
         public void VisitCelChunk(AseCelChunk cel)
         {
-            ReportCallerMemberName();
-
-            int layerIndex = cel.LayerIndex;
+            var layer = m_LayerChunks[cel.LayerIndex];
+            if (!layer.IsVisible)
+            {
+                // Ignore cels from invisible layers
+                return;
+            }
 
             if (cel.LinkedCel != null)
             {
                 cel = cel.LinkedCel;
+            }
+
+            Color32 GetPixel(int x, int y, byte[] pixelBytes, ColorDepth depth, int stride)
+            {
+                return Color.red;
             }
 
             // fixit - test grayscale images
@@ -86,6 +93,25 @@ namespace Aseprite2Unity.Editor
                 //cel.Width
                 //cel.Height;
                 //cel.PixelBytes
+                // cel.Opacity
+                // Get the pixels from this cel and blend them into the canvas for this frame
+                unsafe
+                {
+                    var canvas = m_FrameCanvases.Peek();
+                    var canvasPixels = (Color32*)canvas.Pixels.GetUnsafePtr();
+
+                    for (int x = 0; x < cel.Width; x++)
+                    {
+                        for (int y = 0; y < cel.Height; y++)
+                        {
+                            Color32 pixelColor = GetPixel(x, y, cel.PixelBytes, ColorDepth, cel.Width);
+                            int cx = cel.PositionX + x;
+                            int cy = cel.PositionY + y;
+                            int index = cx + (cy * cel.Width);
+                            canvasPixels[index] = pixelColor;
+                        }
+                    }
+                }
             }
         }
 
