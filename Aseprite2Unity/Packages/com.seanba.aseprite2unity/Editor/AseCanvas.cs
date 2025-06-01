@@ -19,7 +19,7 @@ namespace Aseprite2Unity.Editor
             Pixels = new NativeArray<Color32>(Width * Height, Allocator.Persistent);
         }
 
-        public Texture2D ToTexture2D()
+        public Texture2D ToTexture2D() // fixit - flip these here
         {
             var texture2d = new Texture2D(Width, Height, TextureFormat.ARGB32, false);
             texture2d.wrapMode = TextureWrapMode.Clamp;

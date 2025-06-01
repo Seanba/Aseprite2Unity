@@ -47,7 +47,7 @@ namespace Aseprite2Unity.Editor
         private List<string> m_Errors = new List<string>();
         public IEnumerable<string> Errors { get { return m_Errors; } }
 
-        // Helper classes // fixit - do we need these helper classes?
+        // Helper classes
         private class ScopedRenderTexture : IDisposable
         {
             private readonly RenderTexture m_OldRenderTexture;
@@ -214,7 +214,7 @@ namespace Aseprite2Unity.Editor
             var texture2d = CreateTexture2D();
 
             // Copy the frame render texture to our 2D texture
-            using (new ScopedRenderTexture(m_FrameRenderTexture)) // fixit - should just start off with a Texture2D for the frame
+            using (new ScopedRenderTexture(m_FrameRenderTexture))
             {
                 texture2d.ReadPixels(new Rect(0, 0, AseWidth, AseHeight), 0, 0);
                 texture2d.Apply(false, true);
@@ -259,7 +259,7 @@ namespace Aseprite2Unity.Editor
 
                 if (cel.CelType == CelType.CompressedTilemap)
                 {
-                    // Todo seanba: the texture is to be composed of tiles, not pixels // fixit - because tiles can be rotated we should use a RenderTexture for the Cel so we can do a Graphics.Blit
+                    // Todo seanba: the texture is to be composed of tiles, not pixels
                 }
                 else if (cel.CelType == CelType.CompressedImage)
                 {
@@ -275,8 +275,6 @@ namespace Aseprite2Unity.Editor
                         }
                     }
                 }
-
-                // fixit - here we should Blend the texture made above with the texture for the frame
 
                 texture2d.Obj.Apply();
 
@@ -298,7 +296,7 @@ namespace Aseprite2Unity.Editor
                         blitMaterial.Obj.SetFloat("_Opacity", layer.Opacity / 255.0f);
                         blitMaterial.Obj.SetInt("_BlendMode", (int)layer.BlendMode);
 
-                        Graphics.Blit(texture2d.Obj, m_FrameRenderTexture, blitMaterial.Obj); // fixit - We only used a RenderTexture here in order to do a blit
+                        Graphics.Blit(texture2d.Obj, m_FrameRenderTexture, blitMaterial.Obj);
                     }
                 }
             }

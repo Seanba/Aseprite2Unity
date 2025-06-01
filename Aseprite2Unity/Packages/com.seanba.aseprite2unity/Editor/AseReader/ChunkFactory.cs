@@ -13,7 +13,7 @@ namespace Aseprite2Unity.Editor
             switch (type)
             {
                 case ChunkType.OldPalette:
-                    chunk = new AseOldPaletteChunk(frame, reader); // fixit - add this to visitor
+                    chunk = new AseOldPaletteChunk(frame, reader);
                     break;
 
                 case ChunkType.Palette:
@@ -54,8 +54,6 @@ namespace Aseprite2Unity.Editor
                     Debug.LogErrorFormat("Unhandled chunk type: {0}", ((ushort)type).ToString("X4"));
                     break;
             }
-
-            Debug.LogWarningFormat("fixit chunk type: {0}", ((ushort)type).ToString("X4"));
 
             // Check that we read the right amount of bytes
             Assert.IsTrue((reader.Position - pos) == size, string.Format("Chunk {0} read {1} bytes but we were expecting {2} bytes read", type, reader.Position - pos, size));

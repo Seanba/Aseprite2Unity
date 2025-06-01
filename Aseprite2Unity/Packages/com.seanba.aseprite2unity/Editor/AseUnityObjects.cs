@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
+using Danger.UnityEditor.U2D.Aseprite; // fixit - bastard namespace
 
 namespace Aseprite2Unity.Editor
 {
@@ -77,40 +78,8 @@ namespace Aseprite2Unity.Editor
                 cel = cel.LinkedCel;
             }
 
-            static Color32 GetPixel(int x, int y, byte[] pixelBytes, ColorDepth depth, int stride, List<Color32> palette) // fixit - helper function
-            {
-                if (depth == ColorDepth.Indexed8)
-                {
-                    var index = x + (y * stride);
-                    int paletteIndex = pixelBytes[index];
-                    var color = palette[paletteIndex];
-                    return color;
-                }
-                else if (depth == ColorDepth.Grayscale16)
-                {
-                    var index = 2 * (x + (y * stride));
-                    var value = pixelBytes[index];
-                    var alpha = pixelBytes[index + 1];
-                    return new Color32(value, value, value, alpha);
-                }
-                else if (depth == ColorDepth.RGBA32)
-                {
-                    var index = 4 * (x + (y * stride));
-                    var red = pixelBytes[index];
-                    var green = pixelBytes[index + 1];
-                    var blue = pixelBytes[index + 2];
-                    var alpha = pixelBytes[index + 3];
-                    return new Color32(red, green, blue, alpha);
-                }
-
-                // Unsupported color depth
-                return Color.magenta;
-            }
-
-            // fixit - test grayscale images
-            // fixit - test raw image data
             // fixit - test tiles
-            // fixit - do the blends
+            // fixit - do the blends (layer.BlendMode)
             // fixit - use opacity
             if (cel.CelType == CelType.CompressedImage)
             {
@@ -124,13 +93,18 @@ namespace Aseprite2Unity.Editor
                     {
                         for (int y = 0; y < cel.Height; y++)
                         {
-                            Color32 pixelColor = GetPixel(x, y, cel.PixelBytes, ColorDepth, cel.Width, m_Palette);
+                            Color32 pixelColor = GetPixel(x, y, cel.PixelBytes, cel.Width);
                             if (pixelColor.a > 0)
                             {
                                 int cx = cel.PositionX + x;
                                 int cy = cel.PositionY + y;
                                 int index = cx + (cy * canvas.Width);
-                                canvasPixels[index] = pixelColor;
+
+                                Color32 basePixel = canvasPixels[index];
+
+                                PixelBlends.Hue(basePixel, pixelColor, out Color32 blendedColor); // fixit - first example of a Hue blend working
+
+                                canvasPixels[index] = blendedColor;
                             }
                         }
                     }
@@ -176,9 +150,39 @@ namespace Aseprite2Unity.Editor
             ReportCallerMemberName();
         }
 
+        private Color32 GetPixel(int x, int y, byte[] pixelBytes, int stride)
+        {
+            if (ColorDepth == ColorDepth.Indexed8)
+            {
+                var index = x + (y * stride);
+                int paletteIndex = pixelBytes[index];
+                var color = m_Palette[paletteIndex];
+                return color;
+            }
+            else if (ColorDepth == ColorDepth.Grayscale16)
+            {
+                var index = 2 * (x + (y * stride));
+                var value = pixelBytes[index];
+                var alpha = pixelBytes[index + 1];
+                return new Color32(value, value, value, alpha);
+            }
+            else if (ColorDepth == ColorDepth.RGBA32)
+            {
+                var index = 4 * (x + (y * stride));
+                var red = pixelBytes[index];
+                var green = pixelBytes[index + 1];
+                var blue = pixelBytes[index + 2];
+                var alpha = pixelBytes[index + 3];
+                return new Color32(red, green, blue, alpha);
+            }
+
+            // Unsupported color depth
+            return Color.magenta;
+        }
+
         private static void ReportCallerMemberName([CallerMemberName] string caller = null)
         {
-            Debug.LogError($"Unhanlded method: {caller}"); // fixit - disable for now
+            Debug.LogError($"Unhanlded method: {caller}");
         }
     }
 }
