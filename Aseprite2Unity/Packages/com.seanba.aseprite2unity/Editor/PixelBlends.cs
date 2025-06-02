@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using Unity.Burst;
 
-namespace Danger.UnityEditor.U2D.Aseprite // fixit - put into another asmdef and override namespace
+//namespace UnityEditor.U2D.Aseprite // Note: Code originally found in Unity's Aseprite Importer
+namespace Aseprite2Unity.Editor
 {
     [BurstCompile]
     internal static class PixelBlends

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using Danger.UnityEditor.U2D.Aseprite; // fixit - bastard namespace
 
 namespace Aseprite2Unity.Editor
 {
@@ -17,7 +16,7 @@ namespace Aseprite2Unity.Editor
         public int TransparentIndex => m_AseFile.Header.TransparentIndex;
 
         private AseFile m_AseFile;
-        private readonly Stack<AseCanvas> m_FrameCanvases = new Stack<AseCanvas>(); // fixit - not sure this should be a stack now
+        private readonly Stack<AseCanvas> m_FrameCanvases = new Stack<AseCanvas>();
         private readonly List<AseLayerChunk> m_LayerChunks = new List<AseLayerChunk>();
         private readonly List<Color32> m_Palette = new List<Color32>();
 

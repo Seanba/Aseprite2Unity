@@ -96,6 +96,7 @@ namespace Aseprite2Unity.Editor
                 {
                     m_AseFile.VisitContents(aseUnityObjects);
 
+                    /*
                     // Texture is upside down. Use a Graphics.Blit to fix that instead of fixing all the places where Aseprite touches pixel data.
                     var renderTexture = new RenderTexture(AseWidth, AseHeight, 0, RenderTextureFormat.ARGB32, 0);
                     renderTexture.wrapMode = TextureWrapMode.Clamp;
@@ -118,6 +119,20 @@ namespace Aseprite2Unity.Editor
                     }
 
                     RenderTexture.active = oldRenderTexture;
+                    */
+
+                    var textures = aseUnityObjects.FetchFrameTextures().ToArray();
+                    for (int i = 0; i < textures.Length; i++)
+                    {
+                        var texture = textures[i];
+
+                        // Make the texture no longer read/write
+                        texture.Apply(false, true);
+
+                        texture.name = $"AseObjectTexture.{i}";
+                        m_Context.AddObjectToAsset(texture.name, texture);
+                        m_Context.SetMainObject(texture);
+                    }
                 }
             }
 #else
