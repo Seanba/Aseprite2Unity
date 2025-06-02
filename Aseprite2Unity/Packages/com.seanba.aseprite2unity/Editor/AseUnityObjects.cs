@@ -78,7 +78,6 @@ namespace Aseprite2Unity.Editor
             }
 
             // fixit - test tiles
-            // fixit - do the blends (layer.BlendMode)
             // fixit - use opacity
             if (cel.CelType == CelType.CompressedImage)
             {
