@@ -78,7 +78,10 @@ namespace Aseprite2Unity.Editor
             }
 
             // fixit - test tiles
-            // fixit - use opacity
+            // fixit - use opacity (cell and layer and pixel)
+            //cel.Opacity;
+            //layer.Opacity;
+            //pixel.a
             if (cel.CelType == CelType.CompressedImage)
             {
                 // Get the pixels from this cel and blend them into the canvas for this frame
