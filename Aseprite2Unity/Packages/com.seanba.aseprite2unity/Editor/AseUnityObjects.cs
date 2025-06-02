@@ -78,10 +78,6 @@ namespace Aseprite2Unity.Editor
             }
 
             // fixit - test tiles
-            // fixit - use opacity (cell and layer and pixel)
-            //cel.Opacity;
-            //layer.Opacity;
-            //pixel.a
             if (cel.CelType == CelType.CompressedImage)
             {
                 // Get the pixels from this cel and blend them into the canvas for this frame
@@ -94,15 +90,16 @@ namespace Aseprite2Unity.Editor
                     {
                         for (int y = 0; y < cel.Height; y++)
                         {
-                            Color32 layerPixel = GetPixel(x, y, cel.PixelBytes, cel.Width);
-                            if (layerPixel.a > 0)
+                            Color32 celPixel = GetPixel(x, y, cel.PixelBytes, cel.Width);
+                            celPixel.a = CalculateOpacity(celPixel.a, layer.Opacity, cel.Opacity);
+                            if (celPixel.a > 0)
                             {
                                 int cx = cel.PositionX + x;
                                 int cy = cel.PositionY + y;
                                 int index = cx + (cy * canvas.Width);
 
                                 Color32 basePixel = canvasPixels[index];
-                                Color32 blendedPixel = BlendColors(layer.BlendMode, basePixel, layerPixel);
+                                Color32 blendedPixel = BlendColors(layer.BlendMode, basePixel, celPixel);
                                 canvasPixels[index] = blendedPixel;
                             }
                         }
@@ -245,6 +242,17 @@ namespace Aseprite2Unity.Editor
             }
 
             return outColor;
+        }
+
+        private static byte CalculateOpacity(params byte[] opacities)
+        {
+            float opacity = 1.0f;
+            foreach (var opByte in opacities)
+            {
+                opacity *= (float)(opByte / 255.0f);
+            }
+
+            return (byte)(opacity * 255);
         }
 
         private static void ReportCallerMemberName([CallerMemberName] string caller = null)
