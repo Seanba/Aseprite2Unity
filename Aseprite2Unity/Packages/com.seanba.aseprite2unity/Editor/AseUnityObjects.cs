@@ -127,7 +127,9 @@ namespace Aseprite2Unity.Editor
 
         public void VisitPaletteChunk(AsePaletteChunk palette)
         {
-            // fixit - test this. Need 256+ colors or a palette with alpha
+            m_Palette.Clear();
+            m_Palette.AddRange(palette.Entries.Select(e => new Color32(e.Red, e.Green, e.Blue, e.Alpha)));
+            m_Palette[TransparentIndex] = Color.clear;
         }
 
         public void VisitSliceChunk(AseSliceChunk slice)
