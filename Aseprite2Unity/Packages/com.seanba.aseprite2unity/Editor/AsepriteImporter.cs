@@ -108,6 +108,14 @@ namespace Aseprite2Unity.Editor
                         m_Context.AddObjectToAsset(texture.name, texture);
                         m_Context.SetMainObject(texture);
                     }
+
+                    var tilesetTexture = aseUnityObjects.FetchTilesetTexture();
+                    if (tilesetTexture != null)
+                    {
+                        tilesetTexture.Apply(false, true);
+                        tilesetTexture.name = $"MyTilesetTexture";
+                        m_Context.AddObjectToAsset(tilesetTexture.name, tilesetTexture);
+                    }
                 }
             }
 #else

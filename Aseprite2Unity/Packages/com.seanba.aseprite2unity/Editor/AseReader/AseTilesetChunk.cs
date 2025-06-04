@@ -19,7 +19,7 @@ namespace Aseprite2Unity.Editor
 
         public uint TilesetId { get; }
         public TilesetFlags Flags { get; }
-        public uint NumberOfTiles { get; }
+        public int NumberOfTiles { get; }
         public ushort TileWidth { get; }
         public ushort TileHeight { get; }
         public short BaseIndex { get; }
@@ -31,7 +31,7 @@ namespace Aseprite2Unity.Editor
         {
             TilesetId = reader.ReadDWORD();
             Flags = (TilesetFlags)reader.ReadDWORD();
-            NumberOfTiles = reader.ReadDWORD();
+            NumberOfTiles = (int)reader.ReadDWORD();
             TileWidth = reader.ReadWORD();
             TileHeight = reader.ReadWORD();
             BaseIndex = reader.ReadSHORT();

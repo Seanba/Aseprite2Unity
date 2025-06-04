@@ -15,7 +15,7 @@
         void VisitOldPaletteChunk(AseOldPaletteChunk palette);
         void VisitUserDataChunk(AseUserDataChunk userData);
         void VisitSliceChunk(AseSliceChunk slice);
-        void VisitTilesetChunk(AseTilesetChunk tilset);
+        void VisitTilesetChunk(AseTilesetChunk tileset);
         void VisitDummyChunk(AseDummyChunk dummy);
     }
 }

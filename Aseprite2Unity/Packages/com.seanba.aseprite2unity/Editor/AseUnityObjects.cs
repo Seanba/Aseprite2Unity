@@ -17,6 +17,7 @@ namespace Aseprite2Unity.Editor
 
         private AseFile m_AseFile;
         private readonly Stack<AseCanvas> m_FrameCanvases = new Stack<AseCanvas>();
+        private AseCanvas m_TilesetCanvas; // fixit - testing this out
         private readonly List<AseLayerChunk> m_LayerChunks = new List<AseLayerChunk>();
         private readonly List<Color32> m_Palette = new List<Color32>();
 
@@ -29,11 +30,26 @@ namespace Aseprite2Unity.Editor
             }
         }
 
+        public Texture2D FetchTilesetTexture() // fixit - just for testing
+        {
+            if (m_TilesetCanvas != null)
+            {
+                return m_TilesetCanvas.ToTexture2D();
+            }
+
+            return null;
+        }
+
         public void Dispose()
         {
             foreach (var canvas in m_FrameCanvases)
             {
                 canvas.Dispose();
+            }
+
+            if (m_TilesetCanvas != null)
+            {
+                m_TilesetCanvas.Dispose();
             }
         }
 
@@ -137,10 +153,41 @@ namespace Aseprite2Unity.Editor
             ReportCallerMemberName();
         }
 
-        public void VisitTilesetChunk(AseTilesetChunk tilset)
+        public void VisitTilesetChunk(AseTilesetChunk tileset)
         {
-            // fixit - keep track of the tiles
-            ReportCallerMemberName();
+            // fixit - The dimensions are right but the read is wrong (I think)
+            // (Tile Width) x (Tile Height x Number of Tiles) (from the docs)
+            m_TilesetCanvas = new AseCanvas(tileset.TileWidth * tileset.NumberOfTiles, tileset.TileHeight);
+
+            unsafe
+            {
+                var tilesetPixels = (Color32*)m_TilesetCanvas.Pixels.GetUnsafePtr();
+                for (int n = 0; n < tileset.NumberOfTiles; n++)
+                {
+                    int xmin = n * tileset.TileWidth;
+                    int xmax = xmin + tileset.TileWidth;
+
+                    for (int x = xmin; x < xmax; x++)
+                    {
+                        for (int y = 0; y < tileset.TileHeight; y++)
+                        {
+                            Color32 tilePixel = GetPixel(x, y, tileset.PixelBytes, tileset.NumberOfTiles * tileset.TileWidth);
+                            //celPixel.a = CalculateOpacity(celPixel.a, layer.Opacity, cel.Opacity); // fixit - opacity here?
+                            if (tilePixel.a > 0)
+                            {
+                                int index = x + (y * tileset.NumberOfTiles * tileset.TileWidth);
+
+                                tilesetPixels[index] = tilePixel;
+
+                                //Color32 basePixel = tilesetPixels[index];
+                                //Color32 blendedPixel = BlendColors(layer.BlendMode, basePixel, celPixel); // fixit - blend here?
+                                //canvasPixels[index] = blendedPixel;
+                            }
+                        }
+                    }
+                }
+            }
+
         }
 
         public void VisitUserDataChunk(AseUserDataChunk userData)
