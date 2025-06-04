@@ -155,27 +155,28 @@ namespace Aseprite2Unity.Editor
 
         public void VisitTilesetChunk(AseTilesetChunk tileset)
         {
-            // fixit - The dimensions are right but the read is wrong (I think)
             // (Tile Width) x (Tile Height x Number of Tiles) (from the docs)
-            m_TilesetCanvas = new AseCanvas(tileset.TileWidth * tileset.NumberOfTiles, tileset.TileHeight);
+            int tWidth = tileset.TileWidth;
+            int tHeight = tileset.TileHeight * tileset.NumberOfTiles;
+            m_TilesetCanvas = new AseCanvas(tWidth, tHeight);
 
             unsafe
             {
                 var tilesetPixels = (Color32*)m_TilesetCanvas.Pixels.GetUnsafePtr();
                 for (int n = 0; n < tileset.NumberOfTiles; n++)
                 {
-                    int xmin = n * tileset.TileWidth;
-                    int xmax = xmin + tileset.TileWidth;
-
-                    for (int x = xmin; x < xmax; x++)
+                    for (int x = 0; x < tWidth; x++)
                     {
-                        for (int y = 0; y < tileset.TileHeight; y++)
+                        int ymin = n * tileset.TileHeight;
+                        int ymax = ymin + tileset.TileHeight;
+
+                        for (int y = ymin; y < ymax; y++)
                         {
-                            Color32 tilePixel = GetPixel(x, y, tileset.PixelBytes, tileset.NumberOfTiles * tileset.TileWidth);
+                            Color32 tilePixel = GetPixel(x, y, tileset.PixelBytes, tWidth);
                             //celPixel.a = CalculateOpacity(celPixel.a, layer.Opacity, cel.Opacity); // fixit - opacity here?
                             if (tilePixel.a > 0)
                             {
-                                int index = x + (y * tileset.NumberOfTiles * tileset.TileWidth);
+                                int index = x + (y * tWidth);
 
                                 tilesetPixels[index] = tilePixel;
 
