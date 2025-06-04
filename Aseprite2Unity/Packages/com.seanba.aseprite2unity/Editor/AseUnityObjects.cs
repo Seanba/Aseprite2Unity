@@ -145,7 +145,6 @@ namespace Aseprite2Unity.Editor
 
         public void VisitUserDataChunk(AseUserDataChunk userData)
         {
-            ReportCallerMemberName();
         }
 
         private Color32 GetPixel(int x, int y, byte[] pixelBytes, int stride)

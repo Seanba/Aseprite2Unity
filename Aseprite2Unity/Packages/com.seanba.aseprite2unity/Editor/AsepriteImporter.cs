@@ -366,7 +366,7 @@ namespace Aseprite2Unity.Editor
                     {
                         int i = x + (t * tileset.TileWidth * tileset.TileHeight);
                         int j = FlipY(y, tileset.TileHeight);
-                        Color32 color = GetPixelFromBytes(i, j, tileset.TileWidth, tileset.Pixels);
+                        Color32 color = GetPixelFromBytes(i, j, tileset.TileWidth, tileset.PixelBytes);
                         texture2d.SetPixel(x, y, color);
                     }
                 }
