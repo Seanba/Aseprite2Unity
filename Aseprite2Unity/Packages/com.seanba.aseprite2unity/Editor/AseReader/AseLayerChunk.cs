@@ -10,7 +10,7 @@
         public BlendMode BlendMode { get; }
         public byte Opacity { get; }
         public string Name { get; }
-        public uint TilesetIndex { get; }
+        public int TilesetIndex { get; }
         public byte[] UUID { get; }
 
         public bool IsVisible => (Flags & LayerChunkFlags.Visible) != 0;
@@ -43,7 +43,11 @@
 
             if (LayerType == LayerType.Tilemap)
             {
-                TilesetIndex = reader.ReadDWORD();
+                TilesetIndex = (int)reader.ReadDWORD();
+            }
+            else
+            {
+                TilesetIndex = -1;
             }
 
             if (IsLockMovement)

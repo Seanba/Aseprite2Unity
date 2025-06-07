@@ -17,8 +17,9 @@ namespace Aseprite2Unity.Editor
 
         private AseFile m_AseFile;
         private readonly Stack<AseCanvas> m_FrameCanvases = new Stack<AseCanvas>();
-        private readonly List<AseCanvas> m_TilesetCanvases = new List<AseCanvas>(); // fixit - testing this out
+        private readonly List<AseCanvas> m_TilesetCanvases = new List<AseCanvas>();
         private readonly List<AseLayerChunk> m_LayerChunks = new List<AseLayerChunk>();
+        private readonly List<AseTilesetChunk> m_TilesetChunks = new List<AseTilesetChunk>();
         private readonly List<Color32> m_Palette = new List<Color32>();
 
         // It is the responsibility of the caller to manage these textures
@@ -74,7 +75,6 @@ namespace Aseprite2Unity.Editor
 
         public void VisitLayerChunk(AseLayerChunk layer)
         {
-            Debug.Log($"fixit - AseLayerChunk {layer.Name}, Type = {layer.LayerType}, TilesetIndex = {layer.TilesetIndex}");
             m_LayerChunks.Add(layer);
         }
 
@@ -122,9 +122,53 @@ namespace Aseprite2Unity.Editor
             }
             else if (cel.CelType == CelType.CompressedTilemap)
             {
-                // fixit - how do we reference tiles from different tilesets? (Is it per layer?)
                 // Find layer that is a Tilemap type and has a matching Tileset Index
-                Debug.Log($"fixit - tilemap to layer {cel.LayerIndex}, BitmaskForTileId = {cel.BitmaskForTileId}, data = {string.Join(",", cel.TileData32)}");
+                var tileset = m_TilesetChunks.FirstOrDefault(ts => ts.TilesetId == layer.TilesetIndex);
+                if (tileset != null)
+                {
+                    // fixit:left - cel.PositionX and cel.PositionY are still relevant here
+                    unsafe
+                    {
+                        var canvas = m_FrameCanvases.Peek();
+                        var canvasPixels = (Color32*)canvas.Pixels.GetUnsafePtr();
+
+                        for (int t = 0; t < cel.TileData32.Length; t++)
+                        {
+                            // A tileId of zero means an empty tile
+                            int tileId = (int)cel.TileData32[t];
+                            if (tileId != 0)
+                            {
+                                // Copy every pixel of the tile into the canvas
+                                for (int tx = 0; tx < tileset.TileWidth; tx++)
+                                {
+                                    /*
+                                    int ty_min = tileId * tileset.TileHeight;
+                                    int ty_max = ty_min + tileset.TileHeight;
+                                    for (int ty = ty_min; ty < ty_max; ty++)
+                                    {
+                                        Color32 tilePixel = GetPixel(tx, ty, tileset.PixelBytes, tileset.TileWidth);
+                                        tilePixel.a = CalculateOpacity(tilePixel.a, layer.Opacity, cel.Opacity);
+                                        if (tilePixel.a > 0)
+                                        {
+                                            int dst_x = cel.PositionX + cx;
+                                            int dst_y = cel.PositionY + cy;
+                                            int index = dst_x + (dst_y * canvas.Width);
+
+                                            Color32 basePixel = canvasPixels[index];
+                                            Color32 blendedPixel = BlendColors(layer.BlendMode, basePixel, tilePixel);
+                                            canvasPixels[index] = blendedPixel;
+                                        }
+                                    }
+                                    */
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"Cannot find tileset {layer.TilesetIndex} for layer {layer.Name}");
+                }
             }
         }
 
@@ -159,9 +203,9 @@ namespace Aseprite2Unity.Editor
 
         public void VisitTilesetChunk(AseTilesetChunk tileset)
         {
-            // fixit - somehow we need to know which layer this belongs to
-            Debug.Log($"fixit - tileset chunk TilesetId = {tileset.TilesetId}");
+            m_TilesetChunks.Add(tileset);
 
+            // fixit - remove this stuff when we no longer need it for debugging
             // (Tile Width) x (Tile Height x Number of Tiles) (from the docs)
             int tWidth = tileset.TileWidth;
             int tHeight = tileset.TileHeight * tileset.NumberOfTiles;
