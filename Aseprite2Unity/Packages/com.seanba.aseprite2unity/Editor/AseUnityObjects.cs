@@ -93,7 +93,6 @@ namespace Aseprite2Unity.Editor
                 cel = cel.LinkedCel;
             }
 
-            // fixit - test tiles
             if (cel.CelType == CelType.CompressedImage)
             {
                 // Get the pixels from this cel and blend them into the canvas for this frame
@@ -121,6 +120,12 @@ namespace Aseprite2Unity.Editor
                         }
                     }
                 }
+            }
+            else if (cel.CelType == CelType.CompressedTilemap)
+            {
+                // fixit - how do we reference tiles from different tilesets? (Is it per layer?)
+                // fixit - paste tiles to the canvas for this frame (with opacity and blend)
+                Debug.LogError("fixit - compressed tilemap");
             }
         }
 
