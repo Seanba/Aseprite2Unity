@@ -74,6 +74,7 @@ namespace Aseprite2Unity.Editor
 
         public void VisitLayerChunk(AseLayerChunk layer)
         {
+            Debug.Log($"fixit - AseLayerChunk {layer.Name}, Type = {layer.LayerType}, TilesetIndex = {layer.TilesetIndex}");
             m_LayerChunks.Add(layer);
         }
 
@@ -122,8 +123,8 @@ namespace Aseprite2Unity.Editor
             else if (cel.CelType == CelType.CompressedTilemap)
             {
                 // fixit - how do we reference tiles from different tilesets? (Is it per layer?)
-                // fixit - paste tiles to the canvas for this frame (with opacity and blend)
-                Debug.LogError("fixit - compressed tilemap");
+                // Find layer that is a Tilemap type and has a matching Tileset Index
+                Debug.Log($"fixit - tilemap to layer {cel.LayerIndex}, BitmaskForTileId = {cel.BitmaskForTileId}, data = {string.Join(",", cel.TileData32)}");
             }
         }
 
@@ -158,6 +159,9 @@ namespace Aseprite2Unity.Editor
 
         public void VisitTilesetChunk(AseTilesetChunk tileset)
         {
+            // fixit - somehow we need to know which layer this belongs to
+            Debug.Log($"fixit - tileset chunk TilesetId = {tileset.TilesetId}");
+
             // (Tile Width) x (Tile Height x Number of Tiles) (from the docs)
             int tWidth = tileset.TileWidth;
             int tHeight = tileset.TileHeight * tileset.NumberOfTiles;
