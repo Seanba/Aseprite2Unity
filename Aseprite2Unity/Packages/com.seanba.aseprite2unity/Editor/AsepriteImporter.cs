@@ -104,18 +104,23 @@ namespace Aseprite2Unity.Editor
                         // Make the texture no longer read/write
                         texture.Apply(false, true);
 
-                        texture.name = $"AseObjectTexture.{i}";
+                        texture.name = $"AseObjectTexture.Frame.{i}";
                         m_Context.AddObjectToAsset(texture.name, texture);
                         m_Context.SetMainObject(texture);
                     }
 
-                    var tilesetTexture = aseUnityObjects.FetchTilesetTexture();
-                    if (tilesetTexture != null)
+                    textures = aseUnityObjects.FetchTilesetTextures().ToArray();
+                    for (int i = 0; i < textures.Length; i++)
                     {
-                        tilesetTexture.Apply(false, true);
-                        tilesetTexture.name = $"MyTilesetTexture";
-                        m_Context.AddObjectToAsset(tilesetTexture.name, tilesetTexture);
+                        var texture = textures[i];
+
+                        // Make the texture no longer read/write
+                        texture.Apply(false, true);
+
+                        texture.name = $"AseObjectTexture.Tileset.{i}";
+                        m_Context.AddObjectToAsset(texture.name, texture);
                     }
+
                 }
             }
 #else

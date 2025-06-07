@@ -17,7 +17,7 @@ namespace Aseprite2Unity.Editor
 
         private AseFile m_AseFile;
         private readonly Stack<AseCanvas> m_FrameCanvases = new Stack<AseCanvas>();
-        private AseCanvas m_TilesetCanvas; // fixit - testing this out
+        private readonly List<AseCanvas> m_TilesetCanvases = new List<AseCanvas>(); // fixit - testing this out
         private readonly List<AseLayerChunk> m_LayerChunks = new List<AseLayerChunk>();
         private readonly List<Color32> m_Palette = new List<Color32>();
 
@@ -30,14 +30,12 @@ namespace Aseprite2Unity.Editor
             }
         }
 
-        public Texture2D FetchTilesetTexture() // fixit - just for testing
+        public IEnumerable<Texture2D> FetchTilesetTextures() 
         {
-            if (m_TilesetCanvas != null)
+            foreach (var canvas in m_TilesetCanvases)
             {
-                return m_TilesetCanvas.ToTexture2D();
+                yield return canvas.ToTexture2D();
             }
-
-            return null;
         }
 
         public void Dispose()
@@ -47,9 +45,9 @@ namespace Aseprite2Unity.Editor
                 canvas.Dispose();
             }
 
-            if (m_TilesetCanvas != null)
+            foreach (var canvas in m_TilesetCanvases)
             {
-                m_TilesetCanvas.Dispose();
+                canvas.Dispose();
             }
         }
 
@@ -163,11 +161,12 @@ namespace Aseprite2Unity.Editor
             // (Tile Width) x (Tile Height x Number of Tiles) (from the docs)
             int tWidth = tileset.TileWidth;
             int tHeight = tileset.TileHeight * tileset.NumberOfTiles;
-            m_TilesetCanvas = new AseCanvas(tWidth, tHeight);
+            var canvas = new AseCanvas(tWidth, tHeight);
+            m_TilesetCanvases.Add(canvas);
 
             unsafe
             {
-                var tilesetPixels = (Color32*)m_TilesetCanvas.Pixels.GetUnsafePtr();
+                var tilesetPixels = (Color32*)canvas.Pixels.GetUnsafePtr();
                 for (int n = 0; n < tileset.NumberOfTiles; n++)
                 {
                     for (int x = 0; x < tWidth; x++)
@@ -178,22 +177,12 @@ namespace Aseprite2Unity.Editor
                         for (int y = ymin; y < ymax; y++)
                         {
                             Color32 tilePixel = GetPixel(x, y, tileset.PixelBytes, tWidth);
-                            //celPixel.a = CalculateOpacity(celPixel.a, layer.Opacity, cel.Opacity); // fixit - opacity here?
-                            if (tilePixel.a > 0)
-                            {
-                                int index = x + (y * tWidth);
-
-                                tilesetPixels[index] = tilePixel;
-
-                                //Color32 basePixel = tilesetPixels[index];
-                                //Color32 blendedPixel = BlendColors(layer.BlendMode, basePixel, celPixel); // fixit - blend here?
-                                //canvasPixels[index] = blendedPixel;
-                            }
+                            int index = x + (y * tWidth);
+                            tilesetPixels[index] = tilePixel;
                         }
                     }
                 }
             }
-
         }
 
         public void VisitUserDataChunk(AseUserDataChunk userData)

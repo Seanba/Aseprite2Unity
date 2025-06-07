@@ -1,7 +1,10 @@
-﻿namespace Aseprite2Unity.Editor
+﻿using System;
+
+namespace Aseprite2Unity.Editor
 {
-    public enum HeaderFlags : uint // fixit - use enum flags
+    [Flags]
+    public enum HeaderFlags : uint
     {
-        HasLayerOpacity = 1, // fixit - only use opacity when this flag is set
+        HasLayerOpacity = 1,
     }
 }
