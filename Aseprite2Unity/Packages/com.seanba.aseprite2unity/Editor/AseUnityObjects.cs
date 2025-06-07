@@ -138,10 +138,10 @@ namespace Aseprite2Unity.Editor
                             int tileId = (int)cel.TileData32[t];
                             if (tileId != 0)
                             {
+                                /*
                                 // Copy every pixel of the tile into the canvas
-                                for (int tx = 0; tx < tileset.TileWidth; tx++)
+                                for (int tx = 0, cx = cel.PositionX; tx < tileset.TileWidth; tx++)
                                 {
-                                    /*
                                     int ty_min = tileId * tileset.TileHeight;
                                     int ty_max = ty_min + tileset.TileHeight;
                                     for (int ty = ty_min; ty < ty_max; ty++)
@@ -159,8 +159,27 @@ namespace Aseprite2Unity.Editor
                                             canvasPixels[index] = blendedPixel;
                                         }
                                     }
-                                    */
                                 }
+                                */
+
+                                /*
+                                int t_i = t % cel.NumberOfTilesWide;
+                                int t_j = t / cel.NumberOfTilesWide;
+
+                                int xmin = cel.PositionX + (t_i * tileset.TileWidth);
+                                int xmax = Math.Min(canvas.Width, xmin + tileset.TileWidth);
+
+                                int ymin = cel.PositionY + (t_j * tileset.TileHeight);
+                                int ymax = Math.Min(canvas.Height, ymin + tileset.TileHeight);
+
+                                for (int x = xmin; x < xmax; x++)
+                                {
+                                    for (int y = ymin; y < ymax; y++)
+                                    {
+
+                                    }
+                                }
+                                */
                             }
                         }
                     }
