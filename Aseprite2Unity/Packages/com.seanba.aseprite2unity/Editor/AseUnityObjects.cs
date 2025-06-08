@@ -17,7 +17,6 @@ namespace Aseprite2Unity.Editor
 
         private AseFile m_AseFile;
         private readonly Stack<AseCanvas> m_FrameCanvases = new Stack<AseCanvas>();
-        private readonly List<AseCanvas> m_TilesetCanvases = new List<AseCanvas>();
         private readonly List<AseLayerChunk> m_LayerChunks = new List<AseLayerChunk>();
         private readonly List<AseTilesetChunk> m_TilesetChunks = new List<AseTilesetChunk>();
         private readonly List<Color32> m_Palette = new List<Color32>();
@@ -31,22 +30,9 @@ namespace Aseprite2Unity.Editor
             }
         }
 
-        public IEnumerable<Texture2D> FetchTilesetTextures() 
-        {
-            foreach (var canvas in m_TilesetCanvases)
-            {
-                yield return canvas.ToTexture2D();
-            }
-        }
-
         public void Dispose()
         {
             foreach (var canvas in m_FrameCanvases)
-            {
-                canvas.Dispose();
-            }
-
-            foreach (var canvas in m_TilesetCanvases)
             {
                 canvas.Dispose();
             }
@@ -210,33 +196,6 @@ namespace Aseprite2Unity.Editor
         public void VisitTilesetChunk(AseTilesetChunk tileset)
         {
             m_TilesetChunks.Add(tileset);
-
-            // fixit - remove this stuff when we no longer need it for debugging
-            // (Tile Width) x (Tile Height x Number of Tiles) (from the docs)
-            int tWidth = tileset.TileWidth;
-            int tHeight = tileset.TileHeight * tileset.NumberOfTiles;
-            var canvas = new AseCanvas(tWidth, tHeight);
-            m_TilesetCanvases.Add(canvas);
-
-            unsafe
-            {
-                var tilesetPixels = (Color32*)canvas.Pixels.GetUnsafePtr();
-                for (int n = 0; n < tileset.NumberOfTiles; n++)
-                {
-                    for (int x = 0; x < tWidth; x++)
-                    {
-                        int ymin = n * tileset.TileHeight;
-                        int ymax = ymin + tileset.TileHeight;
-
-                        for (int y = ymin; y < ymax; y++)
-                        {
-                            Color32 tilePixel = GetPixel(x, y, tileset.PixelBytes, tWidth);
-                            int index = x + (y * tWidth);
-                            tilesetPixels[index] = tilePixel;
-                        }
-                    }
-                }
-            }
         }
 
         public void VisitUserDataChunk(AseUserDataChunk userData)
