@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
@@ -171,7 +170,6 @@ namespace Aseprite2Unity.Editor
 
         public void VisitFrameTagsChunk(AseFrameTagsChunk frameTags)
         {
-            ReportCallerMemberName();
         }
 
         public void VisitOldPaletteChunk(AseOldPaletteChunk palette)
@@ -190,7 +188,6 @@ namespace Aseprite2Unity.Editor
 
         public void VisitSliceChunk(AseSliceChunk slice)
         {
-            ReportCallerMemberName();
         }
 
         public void VisitTilesetChunk(AseTilesetChunk tileset)
@@ -309,11 +306,6 @@ namespace Aseprite2Unity.Editor
             }
 
             return (byte)(opacity * 255);
-        }
-
-        private static void ReportCallerMemberName([CallerMemberName] string caller = null)
-        {
-            Debug.LogError($"Unhanlded method: {caller}");
         }
     }
 }
