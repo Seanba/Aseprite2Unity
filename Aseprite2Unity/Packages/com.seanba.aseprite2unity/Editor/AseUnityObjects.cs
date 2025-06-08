@@ -4,6 +4,13 @@ using System.Linq;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
+// fixit clean up all the stuff we don't need
+// Blender.cs
+// Shaders
+// DocColor.cs
+// PixelBlends.cs
+// PixmanCombine.cs
+
 namespace Aseprite2Unity.Editor
 {
     // Traverse an Aseprite file creating Unity objects as you go
