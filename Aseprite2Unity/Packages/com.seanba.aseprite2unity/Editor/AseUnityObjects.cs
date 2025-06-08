@@ -25,8 +25,7 @@ namespace Aseprite2Unity.Editor
         private readonly Stack<AseCanvas> m_FrameCanvases = new Stack<AseCanvas>();
         private readonly List<AseLayerChunk> m_LayerChunks = new List<AseLayerChunk>();
         private readonly List<AseTilesetChunk> m_TilesetChunks = new List<AseTilesetChunk>();
-
-        private AseGraphics.GetPixelArgs m_GetPixelArgs = new AseGraphics.GetPixelArgs();
+        private readonly AseGraphics.GetPixelArgs m_GetPixelArgs = new AseGraphics.GetPixelArgs();
 
         // It is the responsibility of the caller to manage these textures
         public IEnumerable<Texture2D> FetchFrameTextures()
