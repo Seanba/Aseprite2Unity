@@ -25,7 +25,8 @@ namespace Aseprite2Unity.Editor
         private readonly Stack<AseCanvas> m_FrameCanvases = new Stack<AseCanvas>();
         private readonly List<AseLayerChunk> m_LayerChunks = new List<AseLayerChunk>();
         private readonly List<AseTilesetChunk> m_TilesetChunks = new List<AseTilesetChunk>();
-        private readonly List<Color32> m_Palette = new List<Color32>();
+
+        private AseGraphics.GetPixelArgs m_GetPixelArgs = new AseGraphics.GetPixelArgs();
 
         // It is the responsibility of the caller to manage these textures
         public IEnumerable<Texture2D> FetchFrameTextures()
@@ -47,6 +48,7 @@ namespace Aseprite2Unity.Editor
         public void BeginFileVisit(AseFile file)
         {
             m_AseFile = file;
+            m_GetPixelArgs.ColorDepth = ColorDepth;
         }
 
         public void EndFileVisit(AseFile file)
@@ -92,12 +94,15 @@ namespace Aseprite2Unity.Editor
                     var canvas = m_FrameCanvases.Peek();
                     var canvasPixels = (Color32*)canvas.Pixels.GetUnsafePtr();
 
+                    m_GetPixelArgs.PixelBytes = cel.PixelBytes;
+                    m_GetPixelArgs.Stride = cel.Width;
+
                     for (int x = 0; x < cel.Width; x++)
                     {
                         for (int y = 0; y < cel.Height; y++)
                         {
-                            Color32 celPixel = GetPixel(x, y, cel.PixelBytes, cel.Width);
-                            celPixel.a = CalculateOpacity(celPixel.a, layer.Opacity, cel.Opacity);
+                            Color32 celPixel = AseGraphics.GetPixel(x, y, m_GetPixelArgs);
+                            celPixel.a = AseGraphics.CalculateOpacity(celPixel.a, layer.Opacity, cel.Opacity);
                             if (celPixel.a > 0)
                             {
                                 int cx = cel.PositionX + x;
@@ -105,7 +110,7 @@ namespace Aseprite2Unity.Editor
                                 int index = cx + (cy * canvas.Width);
 
                                 Color32 basePixel = canvasPixels[index];
-                                Color32 blendedPixel = BlendColors(layer.BlendMode, basePixel, celPixel);
+                                Color32 blendedPixel = AseGraphics.BlendColors(layer.BlendMode, basePixel, celPixel);
                                 canvasPixels[index] = blendedPixel;
                             }
                         }
@@ -122,6 +127,9 @@ namespace Aseprite2Unity.Editor
                     {
                         var canvas = m_FrameCanvases.Peek();
                         var canvasPixels = (Color32*)canvas.Pixels.GetUnsafePtr();
+
+                        m_GetPixelArgs.PixelBytes = tileset.PixelBytes;
+                        m_GetPixelArgs.Stride = tileset.TileWidth;
 
                         for (int t = 0; t < cel.TileData32.Length; t++)
                         {
@@ -148,13 +156,13 @@ namespace Aseprite2Unity.Editor
                                 {
                                     for (int ty = tymin, cy = cymin; ty < tymax && cy < cymax; ty++, cy++)
                                     {
-                                        Color32 tilePixel = GetPixel(tx, ty, tileset.PixelBytes, tileset.TileWidth);
-                                        tilePixel.a = CalculateOpacity(tilePixel.a, layer.Opacity, cel.Opacity);
+                                        Color32 tilePixel = AseGraphics.GetPixel(tx, ty, m_GetPixelArgs);
+                                        tilePixel.a = AseGraphics.CalculateOpacity(tilePixel.a, layer.Opacity, cel.Opacity);
                                         if (tilePixel.a > 0)
                                         {
                                             int canvasPixelIndex = cx + (cy * canvas.Width);
                                             Color32 basePixel = canvasPixels[canvasPixelIndex];
-                                            Color32 blendedPixel = BlendColors(layer.BlendMode, basePixel, tilePixel);
+                                            Color32 blendedPixel = AseGraphics.BlendColors(layer.BlendMode, basePixel, tilePixel);
                                             canvasPixels[canvasPixelIndex] = blendedPixel;
                                         }
                                     }
@@ -181,16 +189,16 @@ namespace Aseprite2Unity.Editor
 
         public void VisitOldPaletteChunk(AseOldPaletteChunk palette)
         {
-            m_Palette.Clear();
-            m_Palette.AddRange(palette.Colors.Select(c => new Color32(c.red, c.green, c.blue, 255)));
-            m_Palette[TransparentIndex] = Color.clear;
+            m_GetPixelArgs.Palette.Clear();
+            m_GetPixelArgs.Palette.AddRange(palette.Colors.Select(c => new Color32(c.red, c.green, c.blue, 255)));
+            m_GetPixelArgs.Palette[TransparentIndex] = Color.clear;
         }
 
         public void VisitPaletteChunk(AsePaletteChunk palette)
         {
-            m_Palette.Clear();
-            m_Palette.AddRange(palette.Entries.Select(e => new Color32(e.Red, e.Green, e.Blue, e.Alpha)));
-            m_Palette[TransparentIndex] = Color.clear;
+            m_GetPixelArgs.Palette.Clear();
+            m_GetPixelArgs.Palette.AddRange(palette.Entries.Select(e => new Color32(e.Red, e.Green, e.Blue, e.Alpha)));
+            m_GetPixelArgs.Palette[TransparentIndex] = Color.clear;
         }
 
         public void VisitSliceChunk(AseSliceChunk slice)
@@ -204,115 +212,6 @@ namespace Aseprite2Unity.Editor
 
         public void VisitUserDataChunk(AseUserDataChunk userData)
         {
-        }
-
-        private Color32 GetPixel(int x, int y, byte[] pixelBytes, int stride)
-        {
-            if (ColorDepth == ColorDepth.Indexed8)
-            {
-                var index = x + (y * stride);
-                int paletteIndex = pixelBytes[index];
-                var color = m_Palette[paletteIndex];
-                return color;
-            }
-            else if (ColorDepth == ColorDepth.Grayscale16)
-            {
-                var index = 2 * (x + (y * stride));
-                var value = pixelBytes[index];
-                var alpha = pixelBytes[index + 1];
-                return new Color32(value, value, value, alpha);
-            }
-            else if (ColorDepth == ColorDepth.RGBA32)
-            {
-                var index = 4 * (x + (y * stride));
-                var red = pixelBytes[index];
-                var green = pixelBytes[index + 1];
-                var blue = pixelBytes[index + 2];
-                var alpha = pixelBytes[index + 3];
-                return new Color32(red, green, blue, alpha);
-            }
-
-            // Unsupported color depth
-            return Color.magenta;
-        }
-
-        private static Color32 BlendColors(BlendMode blend, Color32 prevColor, Color32 thisColor)
-        {
-            Color32 outColor;
-            switch (blend)
-            {
-                case BlendMode.Darken:
-                    PixelBlends.Darken(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Multiply:
-                    PixelBlends.Multiply(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.ColorBurn:
-                    PixelBlends.ColorBurn(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Lighten:
-                    PixelBlends.Lighten(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Screen:
-                    PixelBlends.Screen(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.ColorDodge:
-                    PixelBlends.ColorDodge(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Addition:
-                    PixelBlends.Addition(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Overlay:
-                    PixelBlends.Overlay(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.SoftLight:
-                    PixelBlends.SoftLight(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.HardLight:
-                    PixelBlends.HardLight(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Difference:
-                    PixelBlends.Difference(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Exclusion:
-                    PixelBlends.Exclusion(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Subtract:
-                    PixelBlends.Subtract(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Divide:
-                    PixelBlends.Divide(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Hue:
-                    PixelBlends.Hue(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Saturation:
-                    PixelBlends.Saturation(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Color:
-                    PixelBlends.ColorBlend(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Luminosity:
-                    PixelBlends.Luminosity(in prevColor, in thisColor, out outColor);
-                    break;
-                case BlendMode.Normal:
-                default:
-                    PixelBlends.Normal(in prevColor, in thisColor, out outColor);
-                    break;
-            }
-
-            return outColor;
-        }
-
-        private static byte CalculateOpacity(params byte[] opacities)
-        {
-            float opacity = 1.0f;
-            foreach (var opByte in opacities)
-            {
-                opacity *= (float)(opByte / 255.0f);
-            }
-
-            return (byte)(opacity * 255);
         }
     }
 }
