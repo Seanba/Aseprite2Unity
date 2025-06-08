@@ -138,48 +138,36 @@ namespace Aseprite2Unity.Editor
                             int tileId = (int)cel.TileData32[t];
                             if (tileId != 0)
                             {
-                                /*
-                                // Copy every pixel of the tile into the canvas
-                                for (int tx = 0, cx = cel.PositionX; tx < tileset.TileWidth; tx++)
+                                int tile_i = t % cel.NumberOfTilesWide;
+                                int tile_j = t / cel.NumberOfTilesWide;
+
+                                // What are the start and end coordinates for the tile?
+                                int txmin = 0;
+                                int txmax = txmin + tileset.TileWidth;
+                                int tymin = tileId * tileset.TileHeight;
+                                int tymax = tymin + tileset.TileHeight;
+
+                                // What are the start and end coordinates for the canvas we are copying tile pixels to?
+                                int cxmin = cel.PositionX + (tile_i * tileset.TileWidth);
+                                int cxmax = Math.Min(canvas.Width, cxmin + tileset.TileWidth);
+                                int cymin = cel.PositionY + (tile_j * tileset.TileHeight);
+                                int cymax = Math.Min(canvas.Height, cymin + tileset.TileHeight);
+
+                                for (int tx = txmin, cx = cxmin; tx < txmax && cx < cxmax; tx++, cx++)
                                 {
-                                    int ty_min = tileId * tileset.TileHeight;
-                                    int ty_max = ty_min + tileset.TileHeight;
-                                    for (int ty = ty_min; ty < ty_max; ty++)
+                                    for (int ty = tymin, cy = cymin; ty < tymax && cy < cymax; ty++, cy++)
                                     {
                                         Color32 tilePixel = GetPixel(tx, ty, tileset.PixelBytes, tileset.TileWidth);
                                         tilePixel.a = CalculateOpacity(tilePixel.a, layer.Opacity, cel.Opacity);
                                         if (tilePixel.a > 0)
                                         {
-                                            int dst_x = cel.PositionX + cx;
-                                            int dst_y = cel.PositionY + cy;
-                                            int index = dst_x + (dst_y * canvas.Width);
-
-                                            Color32 basePixel = canvasPixels[index];
+                                            int canvasPixelIndex = cx + (cy * canvas.Width);
+                                            Color32 basePixel = canvasPixels[canvasPixelIndex];
                                             Color32 blendedPixel = BlendColors(layer.BlendMode, basePixel, tilePixel);
-                                            canvasPixels[index] = blendedPixel;
+                                            canvasPixels[canvasPixelIndex] = blendedPixel;
                                         }
                                     }
                                 }
-                                */
-
-                                /*
-                                int t_i = t % cel.NumberOfTilesWide;
-                                int t_j = t / cel.NumberOfTilesWide;
-
-                                int xmin = cel.PositionX + (t_i * tileset.TileWidth);
-                                int xmax = Math.Min(canvas.Width, xmin + tileset.TileWidth);
-
-                                int ymin = cel.PositionY + (t_j * tileset.TileHeight);
-                                int ymax = Math.Min(canvas.Height, ymin + tileset.TileHeight);
-
-                                for (int x = xmin; x < xmax; x++)
-                                {
-                                    for (int y = ymin; y < ymax; y++)
-                                    {
-
-                                    }
-                                }
-                                */
                             }
                         }
                     }
