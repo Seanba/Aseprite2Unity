@@ -23,8 +23,10 @@ namespace Aseprite2Unity.Editor
         public RuntimeAnimatorController m_AnimatorController;
 
         // The dimensions of the Aseprite file
-        public int AseWidth => m_AseFile.Header.Width;
-        public int AseHeight => m_AseFile.Header.Height;
+        public int CanvasWidth => m_AseFile.Header.Width;
+        public int CanvasHeight => m_AseFile.Header.Height;
+        public ColorDepth ColorDepth => m_AseFile.Header.ColorDepth;
+        public int TransparentIndex => m_AseFile.Header.TransparentIndex;
 
         private readonly List<AseLayerChunk> m_Layers = new List<AseLayerChunk>();
         private readonly List<AseFrame> m_Frames = new List<AseFrame>();
@@ -41,7 +43,7 @@ namespace Aseprite2Unity.Editor
         private AseFrameTagsChunk m_AseFrameTagsChunk;
         private Vector2? m_Pivot;
 
-        private UniqueNameifier m_UniqueNameifierAnimations = new UniqueNameifier();
+        private readonly UniqueNameifier m_UniqueNameifierAnimations = new UniqueNameifier();
 
         [SerializeField]
         private List<string> m_Errors = new List<string>();
@@ -90,8 +92,10 @@ namespace Aseprite2Unity.Editor
             using (var reader = new AseReader(m_Context.assetPath))
             {
                 m_AseFile = new AseFile(reader);
-                //m_AseFile.VisitContents(this); // fixit - don't do this while testing
+                m_AseFile.VisitContents(this);
 
+                // fixit - transfer over
+                /*
                 using (var aseUnityObjects = new AseUnityObjects())
                 {
                     m_AseFile.VisitContents(aseUnityObjects);
@@ -109,6 +113,7 @@ namespace Aseprite2Unity.Editor
                         m_Context.SetMainObject(texture);
                     }
                 }
+                */
             }
 #else
             string msg = string.Format("Aesprite2Unity requires Unity 2020.3 or later. You are using {0}", Application.unityVersion);
@@ -185,7 +190,7 @@ namespace Aseprite2Unity.Editor
 
         public void BeginFrameVisit(AseFrame frame)
         {
-            m_FrameRenderTexture ??= new RenderTexture(AseWidth, AseHeight, 0, RenderTextureFormat.ARGB32, 0);
+            m_FrameRenderTexture ??= new RenderTexture(CanvasWidth, CanvasHeight, 0, RenderTextureFormat.ARGB32, 0);
             m_FrameRenderTexture.wrapMode = TextureWrapMode.Clamp;
             m_FrameRenderTexture.filterMode = FilterMode.Point;
 
@@ -206,7 +211,7 @@ namespace Aseprite2Unity.Editor
             // Copy the frame render texture to our 2D texture
             using (new ScopedRenderTexture(m_FrameRenderTexture))
             {
-                texture2d.ReadPixels(new Rect(0, 0, AseWidth, AseHeight), 0, 0);
+                texture2d.ReadPixels(new Rect(0, 0, CanvasWidth, CanvasHeight), 0, 0);
                 texture2d.Apply(false, true);
             }
 
@@ -221,7 +226,7 @@ namespace Aseprite2Unity.Editor
 
             // Make a sprite out of the texture
             var pivot = m_Pivot ?? new Vector2(0.5f, 0.5f);
-            var sprite = Sprite.Create(texture2d, new Rect(0, 0, AseWidth, AseHeight), pivot, m_PixelsPerUnit);
+            var sprite = Sprite.Create(texture2d, new Rect(0, 0, CanvasWidth, CanvasHeight), pivot, m_PixelsPerUnit);
             m_Sprites.Add(sprite);
 
             var spriteId = $"Sprites._{m_Sprites.Count - 1}";
@@ -278,7 +283,7 @@ namespace Aseprite2Unity.Editor
                     {
                         using (new ScopedRenderTexture(m_FrameRenderTexture))
                         {
-                            backgoundTexture.Obj.ReadPixels(new Rect(0, 0, AseWidth, AseHeight), 0, 0);
+                            backgoundTexture.Obj.ReadPixels(new Rect(0, 0, CanvasWidth, CanvasHeight), 0, 0);
                             backgoundTexture.Obj.Apply(false);
                         }
 
@@ -344,7 +349,7 @@ namespace Aseprite2Unity.Editor
                 float px = entry.OriginX + pw * 0.5f;
                 float py = entry.OriginY + ph * 0.5f;
 
-                m_Pivot = new Vector2(px / AseWidth, 1.0f - py / AseHeight);
+                m_Pivot = new Vector2(px / CanvasWidth, 1.0f - py / CanvasHeight);
             }
         }
 
@@ -357,6 +362,7 @@ namespace Aseprite2Unity.Editor
             // Todo seanba: Do something with this.
             // Note: The first tile is completely blank (an erase tile?)
             // The tileset should have the pixel data for every tile in it
+            /*
             for (int t = 0; t < tileset.NumberOfTiles; t++)
             {
                 var texture2d = CreateTexture2D();
@@ -375,6 +381,7 @@ namespace Aseprite2Unity.Editor
                 texture2d.Apply();
                 m_Context.AddObjectToAsset(texture2d.name, texture2d);
             }
+            */
         }
 
         private void ResizePalette(int maxIndex)
@@ -463,12 +470,12 @@ namespace Aseprite2Unity.Editor
 
         private Texture2D CreateTexture2D()
         {
-            var texture2d = new Texture2D(AseWidth, AseHeight, TextureFormat.ARGB32, false);
+            var texture2d = new Texture2D(CanvasWidth, CanvasHeight, TextureFormat.ARGB32, false);
             texture2d.wrapMode = TextureWrapMode.Clamp;
             texture2d.filterMode = FilterMode.Point;
 
             // Blend functions won't work without our textures starting off cleared
-            var clearPixels = Enumerable.Repeat((Color32)Color.clear, AseWidth * AseHeight).ToArray();
+            var clearPixels = Enumerable.Repeat((Color32)Color.clear, CanvasWidth * CanvasHeight).ToArray();
             texture2d.SetPixels32(clearPixels);
             texture2d.Apply();
 
