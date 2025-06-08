@@ -126,7 +126,6 @@ namespace Aseprite2Unity.Editor
                 var tileset = m_TilesetChunks.FirstOrDefault(ts => ts.TilesetId == layer.TilesetIndex);
                 if (tileset != null)
                 {
-                    // fixit:left - cel.PositionX and cel.PositionY are still relevant here
                     unsafe
                     {
                         var canvas = m_FrameCanvases.Peek();
