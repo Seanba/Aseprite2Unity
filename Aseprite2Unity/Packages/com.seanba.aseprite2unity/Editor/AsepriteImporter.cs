@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.AssetImporters;
 using UnityEngine;
 
@@ -20,7 +21,7 @@ namespace Aseprite2Unity.Editor
         public string m_SortingLayerName;
         public int m_SortingOrder;
         public AnimatorCullingMode m_AnimatorCullingMode = AnimatorCullingMode.AlwaysAnimate;
-        public RuntimeAnimatorController m_AnimatorController;
+        public AnimatorController m_AnimatorController;
 
         // The dimensions of the Aseprite file
         public int CanvasWidth => m_AseFile.Header.Width;
@@ -31,7 +32,7 @@ namespace Aseprite2Unity.Editor
         private readonly List<AseLayerChunk> m_Layers = new List<AseLayerChunk>();
         private readonly List<AseFrame> m_Frames = new List<AseFrame>();
         private readonly List<Sprite> m_Sprites = new List<Sprite>();
-        private readonly List<AnimationClip> m_Clips = new List<AnimationClip>();
+        private readonly List<AnimationClip> m_AnimationClips = new List<AnimationClip>();
 
         private GameObject m_GameObject;
 
@@ -174,15 +175,46 @@ namespace Aseprite2Unity.Editor
             if (animator == null)
             {
                 animator = m_GameObject.AddComponent<Animator>();
-                animator.runtimeAnimatorController = m_AnimatorController;
                 animator.cullingMode = m_AnimatorCullingMode;
+
+                // Make a default animator controller if needed
+                if (m_AnimatorController == null)
+                {
+                    var controller = new AnimatorController();
+                    controller.name = Path.GetFileNameWithoutExtension(assetPath);
+                    controller.AddLayer("Base Layer");
+
+                    foreach (var clip in m_AnimationClips)
+                    {
+                        controller.AddMotion(clip);
+                    }
+
+                    m_Context.AddObjectToAsset(controller.name + "_Controller", controller);
+                    
+                    foreach (var layer in controller.layers)
+                    {
+                        var stateMachine = layer.stateMachine;
+                        m_Context.AddObjectToAsset(stateMachine.name + "_StateMachine", stateMachine);
+
+                        foreach (var state in stateMachine.states)
+                        {
+                            m_Context.AddObjectToAsset(state.state.name + "_State", state.state);
+                        }
+                    }
+
+                    AnimatorController.SetAnimatorController(animator, controller);
+                }
+                else
+                {
+                    AnimatorController.SetAnimatorController(animator, m_AnimatorController);
+                }
             }
 
             m_Palette.Clear();
             m_Layers.Clear();
             m_Frames.Clear();
             m_Sprites.Clear();
-            m_Clips.Clear();
+            m_AnimationClips.Clear();
             m_AseFrameTagsChunk = null;
             m_UniqueNameifierAnimations.Clear();
             m_GameObject = null;
@@ -543,9 +575,10 @@ namespace Aseprite2Unity.Editor
         private void MakeAnimationClip(string animationName, bool isLooping, List<int> frameIndices)
         {
             animationName = m_UniqueNameifierAnimations.MakeUniqueName(animationName);
+            animationName = animationName.Replace('.', '_');
             var assetName = Path.GetFileNameWithoutExtension(assetPath);
-            var clipName = $"{assetName}.Animations.{animationName}";
-            var clipId = $"Animations.{animationName}";
+            var clipName = $"{assetName}_Clip_{animationName}";
+            var clipId = $"Clip_{animationName}";
 
             var clip = new AnimationClip();
             clip.name = clipName;
@@ -616,7 +649,7 @@ namespace Aseprite2Unity.Editor
             }
 
             m_Context.AddObjectToAsset(clipId, clip);
-            m_Clips.Add(clip);
+            m_AnimationClips.Add(clip);
         }
     }
 }
