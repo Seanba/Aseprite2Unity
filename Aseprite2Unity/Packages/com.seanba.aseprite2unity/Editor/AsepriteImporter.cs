@@ -42,7 +42,7 @@ namespace Aseprite2Unity.Editor
         private AseFrameTagsChunk m_AseFrameTagsChunk;
         private Vector2? m_Pivot;
 
-        private AseCanvas m_FrameCanvas; // fixit - make sure this is diposed
+        private AseCanvas m_FrameCanvas;
         private readonly AseGraphics.GetPixelArgs m_GetPixelArgs = new AseGraphics.GetPixelArgs();
 
         private readonly UniqueNameifier m_UniqueNameifierAnimations = new UniqueNameifier();
@@ -50,39 +50,6 @@ namespace Aseprite2Unity.Editor
         [SerializeField]
         private List<string> m_Errors = new List<string>();
         public IEnumerable<string> Errors { get { return m_Errors; } }
-
-        // Helper classes // fixit
-        private class ScopedRenderTexture : IDisposable
-        {
-            private readonly RenderTexture m_OldRenderTexture;
-
-            public ScopedRenderTexture(RenderTexture renderTexture)
-            {
-                m_OldRenderTexture = RenderTexture.active;
-                RenderTexture.active = renderTexture;
-            }
-
-            public void Dispose()
-            {
-                RenderTexture.active = m_OldRenderTexture;
-            }
-        }
-
-        private class ScopedUnityEngineObject<T> : IDisposable where T : UnityEngine.Object
-        {
-            public T Obj { get; }
-
-            public ScopedUnityEngineObject(T obj)
-            {
-                Obj = obj;
-            }
-
-            public void Dispose()
-            {
-                UnityEngine.Object.DestroyImmediate(Obj);
-            }
-        }
-
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
@@ -95,27 +62,6 @@ namespace Aseprite2Unity.Editor
             {
                 m_AseFile = new AseFile(reader);
                 m_AseFile.VisitContents(this);
-
-                // fixit - transfer over
-                /*
-                using (var aseUnityObjects = new AseUnityObjects())
-                {
-                    m_AseFile.VisitContents(aseUnityObjects);
-
-                    var textures = aseUnityObjects.FetchFrameTextures().ToArray();
-                    for (int i = 0; i < textures.Length; i++)
-                    {
-                        var texture = textures[i];
-
-                        // Make the texture no longer read/write
-                        texture.Apply(false, true);
-
-                        texture.name = $"AseObjectTexture.Frame.{i}";
-                        m_Context.AddObjectToAsset(texture.name, texture);
-                        m_Context.SetMainObject(texture);
-                    }
-                }
-                */
             }
 #else
             string msg = string.Format("Aesprite2Unity requires Unity 2020.3 or later. You are using {0}", Application.unityVersion);
@@ -126,7 +72,6 @@ namespace Aseprite2Unity.Editor
 
         public void BeginFileVisit(AseFile file)
         {
-            m_AseFile = file;
             m_GetPixelArgs.ColorDepth = ColorDepth;
             m_Pivot = null;
 
@@ -224,7 +169,7 @@ namespace Aseprite2Unity.Editor
             m_Frames.Add(frame);
         }
 
-        public void EndFrameVisit(AseFrame frame) // fixit - commit frame to texture
+        public void EndFrameVisit(AseFrame frame)
         {
             // Commit the frame by copying it to a Texture2D resource
             var texture2d = m_FrameCanvas.ToTexture2D();
@@ -410,92 +355,6 @@ namespace Aseprite2Unity.Editor
         public void VisitTilesetChunk(AseTilesetChunk tileset)
         {
             m_TilesetChunks.Add(tileset);
-        }
-
-        private Func<uint, uint, int, uint> GetBlendFunc(AseLayerChunk layer)
-        {
-            switch (layer.BlendMode)
-            {
-                case BlendMode.Normal:
-                    return Blender.rgba_blender_normal;
-
-                case BlendMode.Darken:
-                    return Blender.rgba_blender_darken;
-
-                case BlendMode.Multiply:
-                    return Blender.rgba_blender_multiply;
-
-                case BlendMode.ColorBurn:
-                    return Blender.rgba_blender_color_burn;
-
-                case BlendMode.Lighten:
-                    return Blender.rgba_blender_lighten;
-
-                case BlendMode.Screen:
-                    return Blender.rgba_blender_screen;
-
-                case BlendMode.ColorDodge:
-                    return Blender.rgba_blender_color_dodge;
-
-                case BlendMode.Addition:
-                    return Blender.rgba_blender_addition;
-
-                case BlendMode.Overlay:
-                    return Blender.rgba_blender_overlay;
-
-                case BlendMode.SoftLight:
-                    return Blender.rgba_blender_soft_light;
-
-                case BlendMode.HardLight:
-                    return Blender.rgba_blender_hard_light;
-
-                case BlendMode.Difference:
-                    return Blender.rgba_blender_difference;
-
-                case BlendMode.Exclusion:
-                    return Blender.rgba_blender_exclusion;
-
-                case BlendMode.Subtract:
-                    return Blender.rgba_blender_subtract;
-
-                case BlendMode.Divide:
-                    return Blender.rgba_blender_divide;
-
-                case BlendMode.Hue:
-                    return Blender.rgba_blender_hsl_hue;
-
-                case BlendMode.Saturation:
-                    return Blender.rgba_blender_hsl_saturation;
-
-                case BlendMode.Color:
-                    return Blender.rgba_blender_hsl_color;
-
-                case BlendMode.Luminosity:
-                    return Blender.rgba_blender_hsl_luminosity;
-
-                default:
-                    Debug.LogErrorFormat("Unsupported blend mode: {0}", layer.BlendMode);
-                    return Blender.rgba_blender_normal;
-            }
-        }
-
-        private static int FlipY(int y, int height)
-        {
-            return (height - y) - 1;
-        }
-
-        private Texture2D CreateTexture2D()
-        {
-            var texture2d = new Texture2D(CanvasWidth, CanvasHeight, TextureFormat.ARGB32, false);
-            texture2d.wrapMode = TextureWrapMode.Clamp;
-            texture2d.filterMode = FilterMode.Point;
-
-            // Blend functions won't work without our textures starting off cleared
-            var clearPixels = Enumerable.Repeat((Color32)Color.clear, CanvasWidth * CanvasHeight).ToArray();
-            texture2d.SetPixels32(clearPixels);
-            texture2d.Apply();
-
-            return texture2d;
         }
 
         private void BuildAnimations()
