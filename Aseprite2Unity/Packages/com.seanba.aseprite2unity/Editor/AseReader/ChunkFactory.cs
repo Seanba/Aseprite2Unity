@@ -12,7 +12,10 @@ namespace Aseprite2Unity.Editor
 
             switch (type)
             {
-                // Chunk types we care about
+                case ChunkType.OldPalette:
+                    chunk = new AseOldPaletteChunk(frame, reader);
+                    break;
+
                 case ChunkType.Palette:
                     chunk = new AsePaletteChunk(frame, reader);
                     break;
@@ -43,11 +46,6 @@ namespace Aseprite2Unity.Editor
 
                 case ChunkType.Tileset:
                     chunk = new AseTilesetChunk(frame, reader);
-                    break;
-
-                // Chunk types we don't care about
-                case ChunkType.OldPalette:
-                    chunk = new AseDummyChunk(frame, reader, type, size);
                     break;
 
                 // Chunk types we haven't handled yet. Indicates a bug that should be fixed.

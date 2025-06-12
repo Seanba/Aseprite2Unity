@@ -5,12 +5,12 @@
         public override ChunkType ChunkType => ChunkType.Layer;
 
         public LayerChunkFlags Flags { get; }
-        public LayerType Type { get; }
+        public LayerType LayerType { get; }
         public ushort ChildLevel { get; }
         public BlendMode BlendMode { get; }
         public byte Opacity { get; }
         public string Name { get; }
-        public uint TilesetIndex { get; }
+        public int TilesetIndex { get; }
         public byte[] UUID { get; }
 
         public bool IsVisible => (Flags & LayerChunkFlags.Visible) != 0;
@@ -20,7 +20,7 @@
             : base(frame)
         {
             Flags = (LayerChunkFlags)reader.ReadWORD();
-            Type = (LayerType)reader.ReadWORD();
+            LayerType = (LayerType)reader.ReadWORD();
             ChildLevel = reader.ReadWORD();
 
             // Ignore next two words
@@ -41,9 +41,13 @@
 
             Name = reader.ReadSTRING();
 
-            if (Type == LayerType.Tilemap)
+            if (LayerType == LayerType.Tilemap)
             {
-                TilesetIndex = reader.ReadDWORD();
+                TilesetIndex = (int)reader.ReadDWORD();
+            }
+            else
+            {
+                TilesetIndex = -1;
             }
 
             if (IsLockMovement)

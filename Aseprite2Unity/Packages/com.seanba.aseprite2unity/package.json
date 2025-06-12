@@ -5,7 +5,8 @@
   "description": "Imports Aseprite files into Unity",
   "unity": "2020.3",
   "dependencies": {
-  },
+    "com.unity.burst": "1.0.0"
+  },  
   "keywords": [
     "Aseprite",
     "Importer",

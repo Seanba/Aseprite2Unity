@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -31,6 +32,7 @@ namespace Aseprite2Unity.Editor
         public uint BitmaskForYFlip { get; }
         public uint BitmaskForDiagonalFlip { get; }
         public byte[] TileBytes { get; }
+        public uint[] TileData32 { get; }
 
         public AseCelChunk(AseFrame frame, AseReader reader, int size)
             : base(frame)
@@ -92,6 +94,10 @@ namespace Aseprite2Unity.Editor
                 var bytesRead = reader.Position - pos;
                 var compressed = reader.ReadBYTEs(size - bytesRead);
                 TileBytes = ZlibDeflate(compressed);
+
+                // Take for granted that BitsPerTile is always 32 for now
+                TileData32 = new uint[TileBytes.Length / 4];
+                Buffer.BlockCopy(TileBytes, 0, TileData32, 0, TileBytes.Length);
             }
         }
 

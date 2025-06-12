@@ -1,5 +1,4 @@
 using System.Reflection;
-using UnityEngine;
 
 namespace Aseprite2Unity.Editor
 {

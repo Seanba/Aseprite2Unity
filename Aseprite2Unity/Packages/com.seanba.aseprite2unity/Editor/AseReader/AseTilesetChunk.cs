@@ -19,19 +19,19 @@ namespace Aseprite2Unity.Editor
 
         public uint TilesetId { get; }
         public TilesetFlags Flags { get; }
-        public uint NumberOfTiles { get; }
+        public int NumberOfTiles { get; }
         public ushort TileWidth { get; }
         public ushort TileHeight { get; }
         public short BaseIndex { get; }
         public string TilesetName { get; }
 
-        public byte[] Pixels { get; }
+        public byte[] PixelBytes { get; }
 
         public AseTilesetChunk(AseFrame frame, AseReader reader) : base(frame)
         {
             TilesetId = reader.ReadDWORD();
             Flags = (TilesetFlags)reader.ReadDWORD();
-            NumberOfTiles = reader.ReadDWORD();
+            NumberOfTiles = (int)reader.ReadDWORD();
             TileWidth = reader.ReadWORD();
             TileHeight = reader.ReadWORD();
             BaseIndex = reader.ReadSHORT();
@@ -53,7 +53,7 @@ namespace Aseprite2Unity.Editor
                 var compressed = reader.ReadBYTEs((int)dataLength);
 
                 // tile width * tile height * number of tiles
-                Pixels = AseCelChunk.ZlibDeflate(compressed);
+                PixelBytes = AseCelChunk.ZlibDeflate(compressed);
             }
         }
 
